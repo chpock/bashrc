@@ -1,2 +1,2 @@
-command! DotfilesUpdate !./src/bashrc/rebuild.sh
+command! DotfilesUpdate !./src/rebuild.sh
 autocmd BufWritePost * silent! execute 'DotfilesUpdate'

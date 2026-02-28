@@ -1,8 +1,8 @@
-#/bin/sh
+#!/bin/sh
 
 # Self-extracting script for VIM !VIM_VERSION!.
-# Packaged by Konstantin Kushnir <chpock@gmail.com>
-# Sources are here: https://github.com/chpock/dotfiles
+# Packaged by Kostiantyn Kushnir <chpock@gmail.com>
+# Sources are here: https://github.com/chpock/bashrc
 
 VIM_VERSION="!VIM_VERSION!"
 

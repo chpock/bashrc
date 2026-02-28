@@ -1,7 +1,7 @@
 
 # higher priority for WSL repo location
-BASHRC_HOME="/w/projects/dotfiles/tools"
-[ -d "$BASHRC_HOME" ] || BASHRC_HOME="/c/DriveD/Projects/dotfiles/tools"
+BASHRC_HOME="/w/projects/bashrc/tools"
+[ -d "$BASHRC_HOME" ] || BASHRC_HOME="/c/DriveD/Projects/bashrc/tools"
 
 if [ -d "$BASHRC_HOME" ]; then
     # Disable: This expands when defined, not when used. Consider escaping. [SC2139]

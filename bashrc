@@ -480,8 +480,8 @@ EOF
 
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
-LOCAL_TOOLS_FILE_HASH=7C0FC667
-BASHRC_FILE_HASH=4D6015AE
+LOCAL_TOOLS_FILE_HASH=44BC6E9B
+BASHRC_FILE_HASH=4E4514C7
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -1068,7 +1068,7 @@ local CHECK_STATE
 local IS_ERROR
 local IDX
 local TOOLS_FILE="$IAM_HOME/local_tools"
-local TOOLS_URL="https://raw.githubusercontent.com/chpock/dotfiles/master/tools.list"
+local TOOLS_URL="https://raw.githubusercontent.com/chpock/bashrc/master/tools.list"
 local UPDATE_IMPORTANT_BANNER="Updating important tools..."
 local UPDATE_IMPORTANT_BANNEX="                           "
 if [ "lock" = "$CMD" ]; then
@@ -2924,7 +2924,7 @@ OS="$(uname -o):$(uname -m)"
 if [ "$OS" = "GNU/Linux:x86_64" ] || [ "$OS" = "Linux:x86_64" ]; then
 [ -d "$IAM_HOME/tools/bin" ] || mkdir -p "$IAM_HOME/tools/bin"
 BASH_BIN="$IAM_HOME/tools/bin/bash"
-URL="https://github.com/chpock/dotfiles/releases/download/v0.0.0/bash-portable.5.2.21.linux.x86_64"
+URL="https://github.com/chpock/bashrc/releases/download/v0.0.0/bash-portable.5.2.21.linux.x86_64"
 if command -v curl >/dev/null 2>&1 && curl --silent -L "$URL" -o "$BASH_BIN" >/dev/null 2>&1; then
 SUCCESS=1
 elif command -v wget >/dev/null 2>&1 && wget -q -O "$BASH_BIN" "$URL" >/dev/null 2>&1; then

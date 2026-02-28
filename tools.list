@@ -1,59 +1,59 @@
 tool: install functions
-https://raw.githubusercontent.com/chpock/dotfiles/master/shell.rc/functions-install.sh
-$IAM_HOME/shell.rc/functions-install.sh
+https://raw.githubusercontent.com/chpock/bashrc/master/functions/install.sh
+$IAM_HOME/functions/install.sh
 important: true
-#E09A137B
+#1A670FDF
 tool: git functions
-https://raw.githubusercontent.com/chpock/dotfiles/master/shell.rc/functions-git.sh
-$IAM_HOME/shell.rc/functions-git.sh
+https://raw.githubusercontent.com/chpock/bashrc/master/functions/git.sh
+$IAM_HOME/functions/git.sh
 has: git
 19018
 tool: docker functions
-https://raw.githubusercontent.com/chpock/dotfiles/master/shell.rc/functions-docker.sh
-$IAM_HOME/shell.rc/functions-docker.sh
+https://raw.githubusercontent.com/chpock/bashrc/master/functions/docker.sh
+$IAM_HOME/functions/docker.sh
 has: docker
 4471
 tool: AWS CLI functions
-https://raw.githubusercontent.com/chpock/dotfiles/master/shell.rc/functions-awscli.sh
-$IAM_HOME/shell.rc/functions-awscli.sh
+https://raw.githubusercontent.com/chpock/bashrc/master/functions/awscli.sh
+$IAM_HOME/functions/awscli.sh
 13934
 tool: kubetcl function
-https://raw.githubusercontent.com/chpock/dotfiles/master/shell.rc/functions-kubectl.sh
-$IAM_HOME/shell.rc/functions-kubectl.sh
+https://raw.githubusercontent.com/chpock/bashrc/master/functions/kubectl.sh
+$IAM_HOME/functions/kubectl.sh
 5558
 tool: tmux function
-https://raw.githubusercontent.com/chpock/dotfiles/master/shell.rc/functions-tmux.sh
-$IAM_HOME/shell.rc/functions-tmux.sh
+https://raw.githubusercontent.com/chpock/bashrc/master/functions/tmux.sh
+$IAM_HOME/functions/tmux.sh
 has: tmux
 11483
 tool: python functions
-https://raw.githubusercontent.com/chpock/dotfiles/master/shell.rc/functions-python.sh
-$IAM_HOME/shell.rc/functions-python.sh
+https://raw.githubusercontent.com/chpock/bashrc/master/functions/python.sh
+$IAM_HOME/functions/python.sh
 1919
 tool: jumplist functions
-https://raw.githubusercontent.com/chpock/dotfiles/master/shell.rc/functions-jumplist.sh
-$IAM_HOME/shell.rc/functions-jumplist.sh
+https://raw.githubusercontent.com/chpock/bashrc/master/functions/jumplist.sh
+$IAM_HOME/functions/jumplist.sh
 6517
 tool: misc functions
-https://raw.githubusercontent.com/chpock/dotfiles/master/shell.rc/functions-misc.sh
-$IAM_HOME/shell.rc/functions-misc.sh
+https://raw.githubusercontent.com/chpock/bashrc/master/functions/misc.sh
+$IAM_HOME/functions/misc.sh
 1453
 tool: ,share function
-https://raw.githubusercontent.com/chpock/dotfiles/master/shell.rc/functions-share.sh
-$IAM_HOME/shell.rc/functions-share.sh
+https://raw.githubusercontent.com/chpock/bashrc/master/functions/share.sh
+$IAM_HOME/functions/share.sh
 has: curl
-2556
+2545
 tool: k9s function
-https://raw.githubusercontent.com/chpock/dotfiles/master/shell.rc/functions-k9s.sh
-$IAM_HOME/shell.rc/functions-k9s.sh
+https://raw.githubusercontent.com/chpock/bashrc/master/functions/k9s.sh
+$IAM_HOME/functions/k9s.sh
 has: k9s
 2345
 tool: edit bashrc
-https://raw.githubusercontent.com/chpock/dotfiles/master/shell.rc/bashrc.rc.sh
-$IAM_HOME/shell.rc/bashrc.rc.sh
-509
+https://raw.githubusercontent.com/chpock/bashrc/master/functions/bashrc.rc.sh
+$IAM_HOME/functions/bashrc.rc.sh
+505
 tool: tmux.conf
-https://raw.githubusercontent.com/chpock/dotfiles/master/tmux.conf.template
+https://raw.githubusercontent.com/chpock/bashrc/master/tmux.conf.template
 $IAM_HOME/tmux.conf.template
 has: tmux
 5008
@@ -83,11 +83,11 @@ $IAM_HOME/tools/bash_completion/tmux-completion.bash
 has: tmux
 6102
 tool: mydu tool
-https://raw.githubusercontent.com/chpock/dotfiles/master/tools/mydu
+https://raw.githubusercontent.com/chpock/bashrc/master/tools/mydu
 $IAM_HOME/tools/bin/mydu
 2942
 tool: colors tool
-https://raw.githubusercontent.com/chpock/dotfiles/master/tools/colors
+https://raw.githubusercontent.com/chpock/bashrc/master/tools/colors
 $IAM_HOME/tools/bin/colors
 8262
 tool: apt-cyg tool
@@ -96,21 +96,21 @@ $IAM_HOME/tools/bin/orig-apt-cyg
 is: cygwin
 73293
 tool: dependency check for apt-cyg tool
-https://raw.githubusercontent.com/chpock/dotfiles/master/tools/apt-cyg
+https://raw.githubusercontent.com/chpock/bashrc/master/tools/apt-cyg
 $IAM_HOME/tools/bin/apt-cyg
 is: cygwin
 826
 tool: tmux-helper tool
-https://raw.githubusercontent.com/chpock/dotfiles/master/tools/tmux-helper
+https://raw.githubusercontent.com/chpock/bashrc/master/tools/tmux-helper
 $IAM_HOME/tools/bin/tmux-helper
 has: tmux
 6045
 tool: install-docker
-https://raw.githubusercontent.com/chpock/dotfiles/master/tools/install-docker
+https://raw.githubusercontent.com/chpock/bashrc/master/tools/install-docker
 $IAM_HOME/tools/bin/install-docker
 1232
 tool: tracer/debugger for perl
-https://raw.githubusercontent.com/chpock/dotfiles/master/tools/trace-perl
+https://raw.githubusercontent.com/chpock/bashrc/master/tools/trace-perl
 $IAM_HOME/tools/bin/trace-perl
 has: perl
 3790

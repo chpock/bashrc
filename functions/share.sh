@@ -33,7 +33,7 @@ _has curl || return
         return 1
     fi
     set -- curl --fail-with-body --silent --show-error \
-        -H "User-Agent: dotfiles/1.0 (https://github.com/chpock/dotfiles/blob/master/shell.rc/functions-share.sh)" \
+        -H "User-Agent: dotfiles/1.0 (https://github.com/chpock/bashrc/blob/master/functions/share.sh)" \
         -Ffile="@$FILE" -Fsecret=
     if [ -z "$EXPIRES" ] || [ "$EXPIRES" = "0" ] || [ "$EXPIRES" = "-" ]; then
         _info "Upload file '%s' without an expiration date..." "$FILE"

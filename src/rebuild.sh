@@ -3,7 +3,7 @@
 set -eo pipefail
 
 SRC_DIR="$(cd "$(dirname "$0")"; pwd)"
-OUT_DIR="$(cd "$SRC_DIR"/../..; pwd)"
+OUT_DIR="$(cd "$SRC_DIR"/..; pwd)"
 BASHRC_OUT_FILE="$OUT_DIR/bashrc"
 BASHRC_SRC_FILE="$SRC_DIR/skeleton"
 TOOLS_OUT_FILE="$OUT_DIR/tools.list"
@@ -162,21 +162,21 @@ process() {
             line="${line#* }"
             var="${line%% *}"
             fn="${line#* }"
-            fn="${fn/REPO_ROOT/..\/../}"
+            fn="${fn/REPO_ROOT/../}"
             printf '%s=%s\n' "$var" "$(getSize "$SRC_DIR/$fn")"
         elif [ "${line%% *}" = "@getSize" ]; then
             fn="${line#* }"
-            fn="${fn/REPO_ROOT/..\/..\//}"
+            fn="${fn/REPO_ROOT/..\//}"
             getSize "$SRC_DIR/$fn"
         elif [ "${line%% *}" = "@getHash" ]; then
             fn="${line#* }"
-            fn="${fn/REPO_ROOT/..\/..\//}"
+            fn="${fn/REPO_ROOT/..\//}"
             getHash "$SRC_DIR/$fn"
         elif [ "${line%% *}" = "@setHash" ]; then
             line="${line#* }"
             var="${line%% *}"
             fn="${line#* }"
-            fn="${fn/REPO_ROOT/..\/../}"
+            fn="${fn/REPO_ROOT/../}"
             _hash < "$SRC_DIR/$fn"
             printf '%s=%s\n' "$var" "$_HASH"
         else

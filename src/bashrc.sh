@@ -818,7 +818,7 @@ tools() {
     local IS_ERROR
     local IDX
     local TOOLS_FILE="$IAM_HOME/local_tools"
-    local TOOLS_URL="https://raw.githubusercontent.com/chpock/dotfiles/master/tools.list"
+    local TOOLS_URL="https://raw.githubusercontent.com/chpock/bashrc/master/tools.list"
     # This banner will be shown in case of 'update important' to be aware that
     # we are interacting with something remote and may potentially get stuck.
     # We need to understand why we are stuck in this case. After the update,

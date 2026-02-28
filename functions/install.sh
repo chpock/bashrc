@@ -751,7 +751,7 @@ __install_gzip_portable() {
     fi
 
     local VERSION_REPO="v0.0.0"
-    local URL="https://github.com/chpock/dotfiles/releases/download/${VERSION_REPO}/gzip-portable.${VERSION}."
+    local URL="https://github.com/chpock/bashrc/releases/download/${VERSION_REPO}/gzip-portable.${VERSION}."
     __install_make_url -noformat "
         linux-x64   linux.x86_64
     " && __install_download && __install_bin "archive" || return $?
@@ -770,7 +770,7 @@ __install_xz_portable() {
     fi
 
     local VERSION_REPO="v0.0.0"
-    local URL="https://github.com/chpock/dotfiles/releases/download/${VERSION_REPO}/xz-portable.${VERSION}."
+    local URL="https://github.com/chpock/bashrc/releases/download/${VERSION_REPO}/xz-portable.${VERSION}."
     __install_make_url -noformat "
         linux-x64   linux.x86_64
     " && __install_download && __install_bin "archive" || return $?
@@ -788,7 +788,7 @@ __install_tar_portable() {
     fi
 
     local VERSION_REPO="v0.0.0"
-    local URL="https://github.com/chpock/dotfiles/releases/download/${VERSION_REPO}/tar-portable.${VERSION}."
+    local URL="https://github.com/chpock/bashrc/releases/download/${VERSION_REPO}/tar-portable.${VERSION}."
     __install_make_url -noformat "
         linux-x64   linux.x86_64
     " || return $?
@@ -813,7 +813,7 @@ __install_vim() {
     fi
 
     local VERSION_REPO="v0.0.0"
-    local URL="https://github.com/chpock/dotfiles/releases/download/${VERSION_REPO}/vim-portable.v${VERSION}."
+    local URL="https://github.com/chpock/bashrc/releases/download/${VERSION_REPO}/vim-portable.v${VERSION}."
     __install_make_url -noformat "
         linux-x64   linux.x86_64
     " || return $?
