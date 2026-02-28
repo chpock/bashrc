@@ -779,7 +779,8 @@ fi
     rm -rf \
         "$IAM_HOME/kitty_sessions" \
         "$IAM_HOME/shell_sessions" \
-        "$IAM_HOME/tmux_sessions"
+        "$IAM_HOME/tmux_sessions" \
+        "$IAM_HOME/shell.rc"
     # Remove outdated bash completions if they exist
     rm -f \
     "$IAM_HOME/tools/bash_completion"/ecconfigure.completion.bash \

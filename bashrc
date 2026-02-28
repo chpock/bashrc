@@ -481,7 +481,7 @@ EOF
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
 LOCAL_TOOLS_FILE_HASH=44BC6E9B
-BASHRC_FILE_HASH=4E4514C7
+BASHRC_FILE_HASH=FBBD1C5E
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -1040,7 +1040,8 @@ fi
 rm -rf \
 "$IAM_HOME/kitty_sessions" \
 "$IAM_HOME/shell_sessions" \
-"$IAM_HOME/tmux_sessions"
+"$IAM_HOME/tmux_sessions" \
+"$IAM_HOME/shell.rc"
 rm -f \
 "$IAM_HOME/tools/bash_completion"/ecconfigure.completion.bash \
 "$IAM_HOME/tools/bash_completion"/ectool.completion.bash \
