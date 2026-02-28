@@ -1,4 +1,4 @@
-#/bin/sh
+#!/bin/sh
 
 # don't use '--directory' parameter here as it is not suppurted by busybox
 TEMP_LIB="$(mktemp -d)"
