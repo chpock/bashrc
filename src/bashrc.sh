@@ -1058,8 +1058,8 @@ complete -W "check update lock unlock" tools
 
 tools update important
 
-# Load shell.rc scripts now as other scripts may depend on functions defined there
-for SCRIPT in "$IAM_HOME"/shell.rc/*; do
+# Load function scripts now as other scripts may depend on functions defined there
+for SCRIPT in "$IAM_HOME"/functions/*; do
     [ -e "$SCRIPT" ] || continue
     # Disable: ShellCheck can't follow non-constant source. Use a directive to specify location. [SC1090]
     # shellcheck disable=SC1090
@@ -1309,7 +1309,7 @@ fi
 
 # Here we create a file where timestamp is the time when this shell instance
 # was last active. It will later be used in PROMPT_COMMAND to detect when
-# shell.rc functions have been updated and need to be reloaded. It will also
+# functions have been updated and need to be reloaded. It will also
 # be used to clean up orphaned shell sessions. We use 'echo' instead of
 # 'touch' because 'echo' is a built-in bash command and is much faster.
 _SHELL_SESSION_STAMP="$_SHELL_SESSION_DIR/stamp"
@@ -2920,7 +2920,7 @@ function promptcmd () {
     builtin history -a
 
     local SCRIPT
-    for SCRIPT in "$IAM_HOME"/shell.rc/*; do
+    for SCRIPT in "$IAM_HOME"/functions/*; do
         [ -e "$SCRIPT" ] || continue
         # shellcheck source=/dev/null
         ! _once "PS1 -> source $SCRIPT" && [ "$_SHELL_SESSION_STAMP" -nt "$SCRIPT" ] || source "$SCRIPT"

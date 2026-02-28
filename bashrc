@@ -481,7 +481,7 @@ EOF
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
 LOCAL_TOOLS_FILE_HASH=44BC6E9B
-BASHRC_FILE_HASH=FBBD1C5E
+BASHRC_FILE_HASH=848F1AEA
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -1279,7 +1279,7 @@ fi
 }
 complete -W "check update lock unlock" tools
 tools update important
-for SCRIPT in "$IAM_HOME"/shell.rc/*; do
+for SCRIPT in "$IAM_HOME"/functions/*; do
 [ -e "$SCRIPT" ] || continue
 ! _once "PS1 -> source $SCRIPT" || source "$SCRIPT"
 done
@@ -2540,7 +2540,7 @@ if [ -n "$HISTFILE_GLOBAL" ]; then
 fi
 builtin history -a
 local SCRIPT
-for SCRIPT in "$IAM_HOME"/shell.rc/*; do
+for SCRIPT in "$IAM_HOME"/functions/*; do
 [ -e "$SCRIPT" ] || continue
 ! _once "PS1 -> source $SCRIPT" && [ "$_SHELL_SESSION_STAMP" -nt "$SCRIPT" ] || source "$SCRIPT"
 done
