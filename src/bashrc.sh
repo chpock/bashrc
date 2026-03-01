@@ -2764,7 +2764,7 @@ __aws_status() {
     # If we have AWS_PROFILE and other AWS variables, then mark the profile as inactive
     if [ -n "$AWS_ACCESS_KEY_ID$AWS_SECRET_ACCESS_KEY$AWS_SESSION_TOKEN" ] && [ -n "$AWS_PROFILE" ]; then
         AWS_PROFILE_INACTIVE="$AWS_PROFILE"
-        unset AWS_PROFILE
+        _env_unset AWS_PROFILE
     fi
 
     # If we just checking if AWS status is required, then return that flag now

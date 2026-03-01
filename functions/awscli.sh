@@ -51,18 +51,13 @@ aws() {
         fi
         echo "Assume role: $2"
         if [ -n "$AWS_SESSION_TOKEN" ]; then
-            unset AWS_SESSION_TOKEN
-            unset AWS_ACCESS_KEY_ID
-            unset AWS_SECRET_ACCESS_KEY
+            _env_unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
         fi
         # Disable: Quote this to prevent word splitting. [SC2046]
         # shellcheck disable=SC2046
         set -- $(set -x; aws sts assume-role --role-arn "$2" --role-session-name "$(hostname -s)" \
             --output text --query '[Credentials.AccessKeyId,Credentials.SecretAccessKey,Credentials.SessionToken]')
-        export AWS_ACCESS_KEY_ID="$1"
-        export AWS_SECRET_ACCESS_KEY="$2"
-        export AWS_SESSION_TOKEN="$3"
-        export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
+        _env_set AWS_ACCESS_KEY_ID="$1" AWS_SECRET_ACCESS_KEY="$2" AWS_SESSION_TOKEN="$3" AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
         echo "Role assumption: ok"
         ;;
     region)
@@ -76,9 +71,8 @@ aws() {
             [ "$__AWS_REGION" != "<not" ] || __AWS_REGION=""
         else
             if [ -n "$2" ]; then
-                AWS_DEFAULT_REGION="$2"
                 __AWS_REGION="$2"
-                export AWS_DEFAULT_REGION
+                _env_set AWS_DEFAULT_REGION="$__AWS_REGION"
             fi
         fi
         if [ -z "$__AWS_REGION" ]; then
@@ -176,13 +170,13 @@ aws() {
         (set -x; aws ecr get-login-password --region "$REGION" | command $LOGIN_TARGET login --username AWS --password-stdin "$ECR_HOST")
         ;;
     unset-environment-variables)
-        unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_DEFAULT_REGION AWS_PROFILE AWS_PROFILE_INACTIVE
+        _env_unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_DEFAULT_REGION AWS_PROFILE AWS_PROFILE_INACTIVE
         ;;
     profile)
         if [ "$2" = "-" ]; then
-            unset AWS_PROFILE AWS_PROFILE_INACTIVE
+            _env_unset AWS_PROFILE AWS_PROFILE_INACTIVE
         elif [ -n "$2" ]; then
-            [ -z "$AWS_ACCESS_KEY_ID" ] && export AWS_PROFILE="$2" || AWS_PROFILE_INACTIVE="$2"
+            [ -z "$AWS_ACCESS_KEY_ID" ] && _env_set AWS_PROFILE="$2" || AWS_PROFILE_INACTIVE="$2"
         fi
         if [ -n "$AWS_PROFILE" ]; then
             echo "Active AWS profile: $AWS_PROFILE"
@@ -200,8 +194,8 @@ aws() {
         aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID" --profile "$AWS_PROFILE_INACTIVE"
         aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY" --profile "$AWS_PROFILE_INACTIVE"
         aws configure set aws_session_token "$AWS_SESSION_TOKEN" --profile "$AWS_PROFILE_INACTIVE"
-        export AWS_PROFILE="$AWS_PROFILE_INACTIVE"
-        unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_PROFILE_INACTIVE
+        _env_set AWS_PROFILE="$AWS_PROFILE_INACTIVE"
+        _env_unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_PROFILE_INACTIVE
         ;;
     set-browser)
         local AWS_BROWSER_BIN="$IAM_HOME/tools/bin/aws_browser"
