@@ -19,7 +19,6 @@ __INSTALL_VERSION="
   kubecolor     0.5.1
   kor           0.6.6
   mcfly         0.9.3
-  vim           9.0.2094
   yq            4.45.4
   grpcurl       1.9.3
   yazi          25.5.31
@@ -40,8 +39,9 @@ __INSTALL_VERSION="
   robusta-krr:krr                       1.25.1
   7z            24.09
   tar-portable  1.35
-  gzip-portable 1.13
-  xz-portable   5.6.4
+  gzip-portable 1.14
+  xz-portable   5.8.2
+  vim           9.2.0081
   pdu           0.11.0
   cidr          2.2.0
   lnav          0.13.2
@@ -743,15 +743,15 @@ __install_gzip_portable() {
     local VERSION="$1" EXECUTABLE="$2"
 
     if [ "$VERSION" = "-check" ]; then
-        __install_check_version "$EXECUTABLE" --portable-version
+        __install_check_version "$EXECUTABLE" --version \
+            | head -n 1 | awk '{print $NF}'
         return 0
     elif [ "$VERSION" = "-latest" ]; then
         echo "skip"
         return 0
     fi
 
-    local VERSION_REPO="v0.0.0"
-    local URL="https://github.com/chpock/bashrc/releases/download/${VERSION_REPO}/gzip-portable.${VERSION}."
+    local URL="https://github.com/chpock/bashrc/releases/latest/download/gzip-portable.${VERSION}."
     __install_make_url -noformat "
         linux-x64   linux.x86_64
     " && __install_download && __install_bin "archive" || return $?
@@ -769,8 +769,7 @@ __install_xz_portable() {
         return 0
     fi
 
-    local VERSION_REPO="v0.0.0"
-    local URL="https://github.com/chpock/bashrc/releases/download/${VERSION_REPO}/xz-portable.${VERSION}."
+    local URL="https://github.com/chpock/bashrc/releases/latest/download/xz-portable.${VERSION}."
     __install_make_url -noformat "
         linux-x64   linux.x86_64
     " && __install_download && __install_bin "archive" || return $?
@@ -780,15 +779,15 @@ __install_tar_portable() {
     local VERSION="$1" EXECUTABLE="$2"
 
     if [ "$VERSION" = "-check" ]; then
-        __install_check_version "$EXECUTABLE" --portable-version
+        __install_check_version "$EXECUTABLE" --version \
+            | head -n 1 | awk '{print $NF}'
         return 0
     elif [ "$VERSION" = "-latest" ]; then
         echo "skip"
         return 0
     fi
 
-    local VERSION_REPO="v0.0.0"
-    local URL="https://github.com/chpock/bashrc/releases/download/${VERSION_REPO}/tar-portable.${VERSION}."
+    local URL="https://github.com/chpock/bashrc/releases/latest/download/tar-portable.${VERSION}."
     __install_make_url -noformat "
         linux-x64   linux.x86_64
     " || return $?
@@ -804,16 +803,23 @@ __install_vim() {
     local VERSION="$1" EXECUTABLE="$2"
 
     if [ "$VERSION" = "-check" ]; then
-        __install_check_version "$EXECUTABLE" --portable-version \
-            | tr -d 'v'
+        __install_check_version "$EXECUTABLE" --version \
+            | awk '
+                /^VIM - Vi IMproved/ { v=$5 }
+                /^Included patches:/ {
+                    p=$NF
+                    sub(/.*-/, "", p)
+                    printf "%s.%04d\n", v, p
+                    exit
+                }
+            '
         return 0
     elif [ "$VERSION" = "-latest" ]; then
         echo "skip"
         return 0
     fi
 
-    local VERSION_REPO="v0.0.0"
-    local URL="https://github.com/chpock/bashrc/releases/download/${VERSION_REPO}/vim-portable.v${VERSION}."
+    local URL="https://github.com/chpock/bashrc/releases/latest/download/vim-portable.v${VERSION}."
     __install_make_url -noformat "
         linux-x64   linux.x86_64
     " || return $?

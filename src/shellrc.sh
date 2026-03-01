@@ -12,7 +12,7 @@ elif ! BASH_BIN="$(command -v bash 2>/dev/null)"; then
     if [ "$OS" = "GNU/Linux:x86_64" ] || [ "$OS" = "Linux:x86_64" ]; then
         [ -d "$IAM_HOME/tools/bin" ] || mkdir -p "$IAM_HOME/tools/bin"
         BASH_BIN="$IAM_HOME/tools/bin/bash"
-        URL="https://github.com/chpock/bashrc/releases/download/v0.0.0/bash-portable.5.2.21.linux.x86_64"
+        URL="https://github.com/chpock/bashrc/releases/download/v0.0.1/bash-portable.5.3.linux.x86_64"
         if command -v curl >/dev/null 2>&1 && curl --silent -L "$URL" -o "$BASH_BIN" >/dev/null 2>&1; then
             SUCCESS=1
         elif command -v wget >/dev/null 2>&1 && wget -q -O "$BASH_BIN" "$URL" >/dev/null 2>&1; then
