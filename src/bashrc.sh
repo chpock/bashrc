@@ -646,6 +646,62 @@ _unexport() {
     done
 }
 
+_env_has() {
+    local ITEM
+    for ITEM in "${__PERSISTENT_ENV[@]}"; do
+        [ "$ITEM" != "$1" ] || return 0
+    done
+    return 1
+}
+
+_env_set() {
+    local VAR VAL
+    for VAR; do
+        VAL="${VAR#*=}"
+        VAR="${VAR%%=*}"
+        _env_has "$VAR" || __PERSISTENT_ENV+=("$VAR")
+        printf -v "$VAR" '%s' "$VAL"
+        export "${VAR?}"
+    done
+    _env_save
+}
+
+_env_unset() {
+    local VAR CHANGED=0
+    for VAR; do
+        _env_has "$VAR" || continue
+        CHANGED=1
+        unset "$VAR"
+        local ITEM TEMP_ARR=()
+        for ITEM in "${__PERSISTENT_ENV[@]}"; do
+            [ "$ITEM" = "$VAR" ] || TEMP_ARR+=("$ITEM")
+        done
+        __PERSISTENT_ENV=("${TEMP_ARR[@]}")
+    done
+    [ "$CHANGED" -eq 0 ] || _env_save
+}
+
+_env_save() {
+    local ENV_FN="$_SHELL_SESSION_DIR"/env-persistent
+    {
+        declare -p __PERSISTENT_ENV
+        for ITEM in "${__PERSISTENT_ENV[@]}"; do
+            declare -p "$ITEM"
+        done
+    } | sed 's/^declare /declare -g /' > "$ENV_FN"
+    chmod 0600 "$ENV_FN"
+}
+
+_env_load() {
+    local ENV_FN="$_SHELL_SESSION_DIR"/env-persistent
+    for ITEM in "${__PERSISTENT_ENV[@]}"; do
+        unset "$ITEM"
+    done
+    __PERSISTENT_ENV=()
+    # shellcheck disable=SC1090
+    [ ! -r "$ENV_FN" ] || . "$ENV_FN"
+}
+
 mkdir -p "$IAM_HOME/tools/bin"
 _addpath -start "$IAM_HOME/tools/bin"
 _addpath "/usr/local/bin"
@@ -1306,6 +1362,8 @@ elif [ -n "$_TERM_SESSION_DIR" ]; then
     echo "$_SHELL_SESSION_ID" > "$_TERM_SESSION_DIR/shell_session_id"
     #_dbg "Assign shell session '%s' to term '%s'" "$_SHELL_SESSION_ID" "$_TERM_SESSION_ID"
 fi
+
+_env_load
 
 # Here we create a file where timestamp is the time when this shell instance
 # was last active. It will later be used in PROMPT_COMMAND to detect when

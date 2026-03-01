@@ -481,7 +481,7 @@ EOF
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
 LOCAL_TOOLS_FILE_HASH=0FD06E99
-BASHRC_FILE_HASH=848F1AEA
+BASHRC_FILE_HASH=CC2168FF
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -968,6 +968,56 @@ TMPVAL="${!TMPVAR}"
 unset "$TMPVAR"
 printf -v "$TMPVAR" '%s' "$TMPVAL"
 done
+}
+_env_has() {
+local ITEM
+for ITEM in "${__PERSISTENT_ENV[@]}"; do
+[ "$ITEM" != "$1" ] || return 0
+done
+return 1
+}
+_env_set() {
+local VAR VAL
+for VAR; do
+VAL="${VAR#*=}"
+VAR="${VAR%%=*}"
+_env_has "$VAR" || __PERSISTENT_ENV+=("$VAR")
+printf -v "$VAR" '%s' "$VAL"
+export "${VAR?}"
+done
+_env_save
+}
+_env_unset() {
+local VAR CHANGED=0
+for VAR; do
+_env_has "$VAR" || continue
+CHANGED=1
+unset "$VAR"
+local ITEM TEMP_ARR=()
+for ITEM in "${__PERSISTENT_ENV[@]}"; do
+[ "$ITEM" = "$VAR" ] || TEMP_ARR+=("$ITEM")
+done
+__PERSISTENT_ENV=("${TEMP_ARR[@]}")
+done
+[ "$CHANGED" -eq 0 ] || _env_save
+}
+_env_save() {
+local ENV_FN="$_SHELL_SESSION_DIR"/env-persistent
+{
+declare -p __PERSISTENT_ENV
+for ITEM in "${__PERSISTENT_ENV[@]}"; do
+declare -p "$ITEM"
+done
+} | sed 's/^declare /declare -g /' > "$ENV_FN"
+chmod 0600 "$ENV_FN"
+}
+_env_load() {
+local ENV_FN="$_SHELL_SESSION_DIR"/env-persistent
+for ITEM in "${__PERSISTENT_ENV[@]}"; do
+unset "$ITEM"
+done
+__PERSISTENT_ENV=()
+[ ! -r "$ENV_FN" ] || . "$ENV_FN"
 }
 mkdir -p "$IAM_HOME/tools/bin"
 _addpath -start "$IAM_HOME/tools/bin"
@@ -1466,6 +1516,7 @@ echo "$_SHELL_SESSION_ID" > "$_TMUX_WINDOW_DIR/shell_session_id"
 elif [ -n "$_TERM_SESSION_DIR" ]; then
 echo "$_SHELL_SESSION_ID" > "$_TERM_SESSION_DIR/shell_session_id"
 fi
+_env_load
 _SHELL_SESSION_STAMP="$_SHELL_SESSION_DIR/stamp"
 echo > "$_SHELL_SESSION_STAMP"
 _isnot "aws" || _aws_metadata() {
@@ -1728,6 +1779,8 @@ if ! _is in-container && ! _is sudo; then
 local MEM_TOTAL="" MEM_FREE SWAP_TOTAL SWAP_FREE
 if [ -f /proc/meminfo ]; then
 local _buffers=0 _cached=0 _memTotal _memFree _swapTotal _swapFree
+EOF
+cat <<'EOF' >> "$IAM_HOME/bashrc"
 while IFS=$' :\t\r\n' read -r a b c; do
 case "$a" in
 MemTotal)  _memTotal="$b";;
@@ -1752,8 +1805,6 @@ MEM_FREE=0
 while IFS=$':\r\n' read -r a b; do
 if [ "$a" = "Pages free" ] || [ "$a" = "Pages inactive" ] || [ "$a" = "Pages speculative" ]; then
 b="${b// /}"
-EOF
-cat <<'EOF' >> "$IAM_HOME/bashrc"
 b="${b//./}"
 MEM_FREE=$(( MEM_FREE + b ))
 fi
