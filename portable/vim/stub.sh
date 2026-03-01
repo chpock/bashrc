@@ -27,6 +27,7 @@ done
 
 TEMP_DIR="${TEMP_DIR}/vim-portable-${VIM_VERSION}-$(id -un)"
 
+# shellcheck disable=SC2174
 mkdir -p -m 0700 "$TEMP_DIR" || error "Could not create the temporary directory '$TEMP_DIR'."
 
 PERM="$(stat -c '%a' "$TEMP_DIR")"
@@ -40,7 +41,7 @@ if [ ! -x "$TEMP_DIR/vim" ]; then
     command -v tar >/dev/null 2>&1 && TAR=tar || TAR=tar-portable
     command -v gzip >/dev/null 2>&1 && GZIP=gzip || GZIP=gzip-portable
     SKIP="$(awk '/^__ARCHIVE_HERE__/ { print NR + 1; exit 0; }' "$0")"
-    tail -n+$SKIP "$0" | "$GZIP" -d | "$TAR" -x -C "$TEMP_DIR"
+    tail "-n+$SKIP" "$0" | "$GZIP" -d | "$TAR" -x -C "$TEMP_DIR"
 fi
 
 [ -z "$TERMINFO_DIRS" ] || TERMINFO_DIRS=":${TERMINFO_DIRS}"
@@ -50,6 +51,7 @@ export TERMINFO_DIRS
 VIMRUNTIME="${TEMP_DIR}/vim-runtime"
 export VIMRUNTIME
 
+# shellcheck disable=SC2093
 exec "${TEMP_DIR}/vim" "$@"
 
 __ARCHIVE_HERE__

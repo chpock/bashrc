@@ -2,9 +2,10 @@
 
 set -e
 
-BASH_VERSION="5.2.21"
+BASH_VERSION="5.3"
 
-BUILD_DOCKER_IMAGE="dokken/centos-6"
+# BUILD_DOCKER_IMAGE="dokken/centos-6"
+BUILD_DOCKER_IMAGE="public.ecr.aws/ubuntu/ubuntu:26.04"
 MY_HOME="$(cd "$(dirname "$0")"; pwd)"
 MY_NAME="$(basename "$0")"
 
@@ -25,13 +26,14 @@ OUTPUT="${OUTPUT}.${BASH_VERSION}.${OS}.${ARCH}"
 DIR_BUILD="/tmp/build"
 DIR_INSTALL="/tmp/install"
 
-MUSL_VERSION="1.2.4"
+MUSL_VERSION="1.2.5"
 
 set -x
 
 rm -f "$OUTPUT"
 
-yum install -y make gcc bison libtool
+apt-get update
+apt-get install -y make gcc libtool curl
 
 mkdir -p "$DIR_BUILD"
 cd "$DIR_BUILD"
@@ -42,26 +44,18 @@ cd musl-*
 make -j8
 make install
 
+CC=$DIR_INSTALL/musl/bin/musl-gcc
+export CC
+
 cd "$DIR_BUILD"
 
-curl --silent --fail https://ftp.gnu.org/gnu/bash/bash-${BASH_VERSION}.tar.gz | tar xz
+curl -L --silent --fail https://ftp.gnu.org/gnu/bash/bash-${BASH_VERSION}.tar.gz | tar xz
 cd bash-*
-# known bug for bash&musl: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1023053
-sed -i -E 's/(if test \$bash_cv_func_strtoimax = )yes/\1no/' configure
-CC=$DIR_INSTALL/musl/bin/musl-gcc LDFLAGS="-static" ./configure --prefix=$DIR_INSTALL/bash --without-bash-malloc
+LDFLAGS="-static" ./configure --prefix=$DIR_INSTALL/bash --without-bash-malloc
 make -j8
 make tests
-# make install-strip
-# I don't need anything other than bash executable. Also loadable builtins are failed with:
-#
-# /tmp/install/musl/bin/musl-gcc -std=gnu99 -shared -Wl,-soname,print -static -L./lib/termcap  -o print print.o
-# /usr/bin/ld: /tmp/install/musl/lib/libc.a(free.o): relocation R_X86_64_32S against `__malloc_size_classes' can not be used when making a shared object; recompile with -fPIC
-# /tmp/install/musl/lib/libc.a: could not read symbols: Bad value
-#
-# so, just copy the needed executable to expected location.
-mkdir -p $DIR_INSTALL/bash/bin
-install -c -s -m 0755 bash /tmp/install/bash/bin/bash
+make install-strip
 
 cp -f "$DIR_INSTALL/bash/bin/bash" "$OUTPUT"
-chown ${EUID}:${EGID} "$OUTPUT"
+chown "${EUID}:${EGID}" "$OUTPUT"
 chmod +x "$OUTPUT"

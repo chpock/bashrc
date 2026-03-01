@@ -2,9 +2,10 @@
 
 set -e
 
-GZIP_VERSION="1.13"
+GZIP_VERSION="1.14"
 
-BUILD_DOCKER_IMAGE="dokken/centos-6"
+# BUILD_DOCKER_IMAGE="dokken/centos-6"
+BUILD_DOCKER_IMAGE="public.ecr.aws/ubuntu/ubuntu:26.04"
 MY_HOME="$(cd "$(dirname "$0")"; pwd)"
 MY_NAME="$(basename "$0")"
 
@@ -25,13 +26,14 @@ OUTPUT="${OUTPUT}.${GZIP_VERSION}.${OS}.${ARCH}"
 DIR_BUILD="/tmp/build"
 DIR_INSTALL="/tmp/install"
 
-MUSL_VERSION="1.2.4"
+MUSL_VERSION="1.2.5"
 
 set -x
 
 rm -f "$OUTPUT"
 
-yum install -y make gcc libtool
+apt-get update
+apt-get install -y make gcc libtool curl
 
 mkdir -p "$DIR_BUILD"
 cd "$DIR_BUILD"
@@ -47,15 +49,13 @@ export CC
 
 cd "$DIR_BUILD"
 
-curl --silent --fail https://ftp.gnu.org/gnu/gzip/gzip-${GZIP_VERSION}.tar.gz | tar xz
+curl -L --silent --fail https://ftp.gnu.org/gnu/gzip/gzip-${GZIP_VERSION}.tar.gz | tar xz
 cd gzip-*
 LDFLAGS="-static" ./configure --prefix=$DIR_INSTALL/gzip
 make -j8
-#make check
+make check
 make install-strip
 
-sed "s/!GZIP_VERSION!/$GZIP_VERSION/g" "$MY_HOME/stub.sh" > "$OUTPUT"
-cat "$DIR_INSTALL/gzip/bin/gzip" >> "$OUTPUT"
-
-chown ${EUID}:${EGID} "$OUTPUT"
+cp -f "$DIR_INSTALL/gzip/bin/gzip" "$OUTPUT"
+chown "${EUID}:${EGID}" "$OUTPUT"
 chmod +x "$OUTPUT"

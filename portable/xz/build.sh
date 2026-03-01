@@ -2,9 +2,10 @@
 
 set -e
 
-XZ_VERSION="5.6.4"
+XZ_VERSION="5.8.2"
 
-BUILD_DOCKER_IMAGE="ubuntu:noble"
+# BUILD_DOCKER_IMAGE="ubuntu:noble"
+BUILD_DOCKER_IMAGE="public.ecr.aws/ubuntu/ubuntu:26.04"
 MY_HOME="$(cd "$(dirname "$0")"; pwd)"
 MY_NAME="$(basename "$0")"
 
@@ -25,7 +26,7 @@ OUTPUT="${OUTPUT}.${XZ_VERSION}.${OS}.${ARCH}"
 DIR_BUILD="/tmp/build"
 DIR_INSTALL="/tmp/install"
 
-MUSL_VERSION="1.2.4"
+MUSL_VERSION="1.2.5"
 
 set -x
 
@@ -56,9 +57,9 @@ CFLAGS="-no-pie" LDFLAGS="-static" ./configure --prefix=$DIR_INSTALL/xz --enable
     --disable-shared --enable-static \
     --disable-nls --disable-rpath
 make -j8
-#make check
+make check
 make install-strip
 
 cp -f "$DIR_INSTALL/xz/bin/xz" "$OUTPUT"
-chown ${EUID}:${EGID} "$OUTPUT"
+chown "${EUID}:${EGID}" "$OUTPUT"
 chmod +x "$OUTPUT"

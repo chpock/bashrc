@@ -2,10 +2,11 @@
 
 set -e
 
-VIM_TAG="v9.0.2094"
-NCURSES_VERSION="6.4"
+VIM_TAG="v9.2.0081"
+NCURSES_VERSION="6.6"
 
-BUILD_DOCKER_IMAGE="dokken/centos-6"
+# BUILD_DOCKER_IMAGE="dokken/centos-6"
+BUILD_DOCKER_IMAGE="public.ecr.aws/ubuntu/ubuntu:26.04"
 MY_HOME="$(cd "$(dirname "$0")"; pwd)"
 MY_NAME="$(basename "$0")"
 
@@ -33,7 +34,8 @@ set -x
 
 rm -f "$OUTPUT"
 
-yum install -y git make gcc libtool
+apt-get update
+apt-get install -y git make gcc libtool libtool-bin curl
 
 mkdir -p "$DIR_BUILD"
 cd "$DIR_BUILD"
@@ -51,24 +53,23 @@ cd "$DIR_BUILD"
 
 curl --silent --fail https://ftp.gnu.org/gnu/ncurses/ncurses-${NCURSES_VERSION}.tar.gz | tar xz
 cd ncurses-*
-./configure --prefix=$DIR_INSTALL/ncurses --without-manpages --without-shared
+LDFLAGS="-static" ./configure --prefix=$DIR_INSTALL/ncurses --without-manpages --without-shared
 make -j8
 make install
+
 cd "$DIR_BUILD"
 
-git clone https://github.com/vim/vim.git
+git clone --depth 1 --branch "$VIM_TAG" https://github.com/vim/vim.git
 cd vim/src
-git checkout "$VIM_TAG"
-# gcc in cenos6 doesn't support -Wpedantic
-sed -E -i 's/[[:space:]]+-Wpedantic//' libvterm/Makefile
 LDFLAGS="-static -L$DIR_INSTALL/ncurses/lib" ./configure \
     --prefix=$DIR_INSTALL/vim \
     --enable-multibyte \
     --enable-terminal \
-    --without-local-dir
+    --without-local-dir \
+    --with-tlib=ncursesw
 make -j8
 #make test
-make installvimbin installrtbase
+make installvimbin installrtbase installpack
 
 mkdir -p "$DIR_DIST"
 cd "$DIR_DIST"
@@ -77,7 +78,7 @@ mv "$DIR_INSTALL/vim/share/vim"/vim* ./vim-runtime
 mv "$DIR_INSTALL/ncurses/share/terminfo" .
 
 sed "s/!VIM_VERSION!/$VIM_TAG/g" "$MY_HOME/stub.sh" > "$OUTPUT"
-tar zcf - * >> "$OUTPUT"
+tar zcf - ./* >> "$OUTPUT"
 
-chown ${EUID}:${EGID} "$OUTPUT"
+chown "${EUID}:${EGID}" "$OUTPUT"
 chmod +x "$OUTPUT"

@@ -2,11 +2,15 @@
 
 set -e
 
-CURL_VERSION="8.13.0"
-ZLIB_VERSION="1.3.1"
-MBEDTLS_VERSION="3.6.3"
+# CURL_VERSION="8.18.0"
+# CURL_VERSION="8.13.0"
+CURL_VERSION="8.18.0"
+ZLIB_VERSION="1.3.2"
+MBEDTLS_VERSION="4.0.0"
+# MBEDTLS_VERSION="3.6.3"
 
-BUILD_DOCKER_IMAGE="ubuntu:noble"
+# BUILD_DOCKER_IMAGE="ubuntu:noble"
+BUILD_DOCKER_IMAGE="public.ecr.aws/ubuntu/ubuntu:26.04"
 MY_HOME="$(cd "$(dirname "$0")"; pwd)"
 MY_NAME="$(basename "$0")"
 
@@ -26,7 +30,7 @@ ARCH="$(uname -m)"
 DIR_BUILD="/tmp/build"
 DIR_INSTALL="/tmp/install"
 
-MUSL_VERSION="1.2.4"
+MUSL_VERSION="1.2.5"
 
 set -x
 
@@ -51,8 +55,12 @@ cd "$DIR_BUILD"
 
 curl --silent --fail -L "https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-${MBEDTLS_VERSION}/mbedtls-${MBEDTLS_VERSION}.tar.bz2" | tar jx
 cd mbedtls-*
-make lib
+make -j8 -C library
+# make lib
 MBEDTLS_ROOT="$(pwd)"
+
+cp -r tf-psa-crypto/drivers/builtin/include/mbedtls ./include
+cp -r tf-psa-crypto/include/* ./include
 
 cd "$DIR_BUILD"
 
@@ -69,23 +77,26 @@ LDFLAGS="-static -Wl,--gc-sections -Wl,-Bsymbolic -Wl,-s -L${MBEDTLS_ROOT}/libra
     CFLAGS="-Os -no-pie -fdata-sections -ffunction-sections -fno-unwind-tables -fno-asynchronous-unwind-tables -fno-record-gcc-switches -fno-plt" \
     CPPFLAGS="-I${MBEDTLS_ROOT}/include" \
     ./configure --prefix=$DIR_INSTALL/curl \
-    --enable-static --disable-shared --disable-docs --disable-manual \
-    --with-mbedtls --without-libpsl --disable-libcurl-option \
-    --disable-alt-svc --disable-headers-api --disable-hsts --disable-progress-meter --disable-aws \
-    --disable-negotiate-auth --disable-ntlm --disable-doh --disable-get-easy-options --disable-netrc \
-    --disable-unix-sockets --disable-versioned-symbols --disable-verbose --disable-ipfs --disable-rtsp \
-    --disable-dict --disable-file --disable-gopher --disable-gophers --disable-ftp --disable-ftps \
-    --disable-imap --disable-imaps --disable-mqtt --disable-pop3 --disable-pop3s --disable-smtp \
-    --disable-smtps --disable-telnet --disable-tftp \
-    --with-ca-embed=/etc/ssl/certs/ca-certificates.crt \
-    --without-ca-path --without-ca-fallback --without-ca-bundle \
-    --with-zlib=$DIR_INSTALL
-make -j8 install-strip
+        --enable-static --disable-shared --disable-docs --disable-manual \
+        --with-mbedtls --without-libpsl --disable-libcurl-option \
+        --disable-alt-svc --disable-headers-api --disable-hsts --disable-progress-meter \
+        --disable-negotiate-auth --disable-ntlm --disable-doh --disable-get-easy-options --disable-netrc \
+        --disable-unix-sockets --disable-versioned-symbols --disable-verbose --disable-ipfs --disable-rtsp \
+        --disable-dict --disable-file --disable-gopher --disable-gophers --disable-ftp --disable-ftps \
+        --disable-imap --disable-imaps --disable-mqtt --disable-pop3 --disable-pop3s --disable-smtp \
+        --disable-smtps --disable-telnet --disable-tftp \
+        --with-ca-embed=/etc/ssl/certs/ca-certificates.crt \
+        --without-ca-path --without-ca-fallback --without-ca-bundle \
+        --with-zlib=$DIR_INSTALL
+    # --disable-aws is not there due to bug in curl v8.18.0: https://github.com/curl/curl/pull/20368
+make -j8
+#make test
+make install-strip
 
 HASH="$(sha256sum -b "$DIR_INSTALL/curl/bin/curl" | awk '{print $1}')"
 
 OUTPUT="${OUTPUT}.${CURL_VERSION}.${HASH}.${OS}.${ARCH}"
 
 cp -f "$DIR_INSTALL/curl/bin/curl" "$OUTPUT"
-chown ${EUID}:${EGID} "$OUTPUT"
+chown "${EUID}:${EGID}" "$OUTPUT"
 chmod +x "$OUTPUT"
