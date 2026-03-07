@@ -33,6 +33,7 @@ __INSTALL_VERSION="
   kubectl-df-pv:kubectl-df_pv           0.4.1
   kubectl-get-all:kubectl-get_all       1.4.2
   kubectl-glance                        0.1.18
+  kubectl-curl                          0.0.1
   kubeseal                              0.30.0
   istioctl                              1.27.0
   eks-node-viewer                       0.7.4
@@ -254,6 +255,26 @@ __install_kubectl_node_shell() {
     local FORMAT="tar.gz"
 
     __install_download && __install_unpack &&  __install_bin || return $?
+}
+
+__install_kubectl_curl() {
+    local VERSION="$1" EXECUTABLE="$2"
+
+    if [ "$VERSION" = "-check" ]; then
+        __install_check_version -stderr "$EXECUTABLE" --version \
+            | head -n1 | awk '{print $NF}'
+        return 0
+    elif [ "$VERSION" = "-latest" ]; then
+        __install_get_latest_github "crabique/kubectl-curl"
+        return 0
+    fi
+
+    # This tool is a shell script and it is available for any platform
+    [ "$VERSION" != "-available" ] || return 251
+
+    local FORMAT URL="https://raw.githubusercontent.com/crabique/kubectl-curl/refs/tags/v${VERSION}/kubectl-curl"
+
+    __install_download &&  __install_bin "archive" || return $?
 }
 
 __install_kubectl_df_pv() {
