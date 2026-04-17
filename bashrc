@@ -481,7 +481,7 @@ EOF
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
 LOCAL_TOOLS_FILE_HASH=412E6EA8
-BASHRC_FILE_HASH=B22C6B06
+BASHRC_FILE_HASH=2AF37087
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -1020,7 +1020,7 @@ __PERSISTENT_ENV=()
 [ ! -r "$ENV_FN" ] || . "$ENV_FN"
 }
 mkdir -p "$IAM_HOME/tools/bin"
-_addpath -start "$IAM_HOME/tools/bin"
+_addpath -start "$HOME/.local/bin" "$IAM_HOME/tools/bin"
 _addpath "/usr/local/bin"
 if _is aix; then
 _addpath -start "/opt/freeware/bin"
