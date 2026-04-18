@@ -9,6 +9,7 @@ __OPENCODE_STDOUT="$__OPENCODE_ROOT/stdout"
 __OPENCODE_STDERR="$__OPENCODE_ROOT/stderr"
 __OPENCODE_ADDRESS="$__OPENCODE_ROOT/address"
 __OPENCODE_PID_FILE="$__OPENCODE_ROOT/pid"
+__OPENCODE_SIZE_FILE="$__OPENCODE_ROOT/size"
 
 __opencode_check_pid() {
     local OPENCODE_PID="$1"
@@ -39,10 +40,6 @@ __opencode_get_pid() {
     fi
 }
 
-__opencode_is_alive() {
-    [ -f "$__OPENCODE_ADDRESS" ] && __opencode_get_pid && return 0 || return 1
-}
-
 __opencode_stop_server() {
     local OPENCODE_PID
     __opencode_get_pid OPENCODE_PID
@@ -52,7 +49,10 @@ __opencode_stop_server() {
     local MAX_WAIT_TIMEOUT=10 START_SECONDS="$SECONDS"
     local LAST_SECONDS="$START_SECONDS"
     while true; do
-        __opencode_check_pid "$OPENCODE_PID" || return 0
+        if ! __opencode_check_pid "$OPENCODE_PID"; then
+            rm -f "$__OPENCODE_ADDRESS"
+            return 0
+        fi
         local CURRENT_SECONDS="$SECONDS"
         local DURATION="$(( CURRENT_SECONDS - START_SECONDS ))"
         if [ "$DURATION" -gt "$MAX_WAIT_TIMEOUT" ]; then
@@ -67,10 +67,25 @@ __opencode_stop_server() {
     done
 }
 
+__opencode_get_bin_size() {
+    local OPENCODE_BIN
+    OPENCODE_BIN="$(command -v opencode)"
+    _get_size "$OPENCODE_BIN"
+}
+
+__opencode_check_bin_size() {
+    [ -f "$__OPENCODE_SIZE_FILE" ] || return 1
+    local OLD_OPENCODE_SIZE NEW_OPENCODE_SIZE
+    read -r OLD_OPENCODE_SIZE < "$__OPENCODE_SIZE_FILE"
+    NEW_OPENCODE_SIZE="$(__opencode_get_bin_size)"
+    [ "$OLD_OPENCODE_SIZE" = "$NEW_OPENCODE_SIZE" ] && return 0 || return 1
+}
+
 __opencode_start_server() {
     local OPENCODE_PID
     __opencode_stop_server || return 1
     rm -f "$__OPENCODE_STDOUT" "$__OPENCODE_STDERR" "$__OPENCODE_ADDRESS"
+    __opencode_get_bin_size > "$__OPENCODE_SIZE_FILE"
     opencode serve < /dev/null > "$__OPENCODE_STDOUT" 2> "$__OPENCODE_STDERR" &
     OPENCODE_PID=$!
     disown "$OPENCODE_PID"
@@ -103,8 +118,19 @@ __opencode_start_server() {
 }
 
 __opencode_get_address() {
-    local _OPENCODE_SERVER_ADDRESS
-    if __opencode_is_alive || __opencode_start_server; then
+    local _OPENCODE_SERVER_ADDRESS IS_ALIVE=0
+    if [ -f "$__OPENCODE_ADDRESS" ] && __opencode_get_pid; then
+        if __opencode_check_bin_size; then
+            IS_ALIVE=1
+        else
+            _info "The opencode binary has changed. It should be restarted."
+            if ! __opencode_stop_server; then
+                printf -v "$1" ''
+                return
+            fi
+        fi
+    fi
+    if [ "$IS_ALIVE" -eq 1 ] || __opencode_start_server; then
         read -r _OPENCODE_SERVER_ADDRESS < "$__OPENCODE_ADDRESS"
     fi
     printf -v "$1" '%s' "$_OPENCODE_SERVER_ADDRESS"
