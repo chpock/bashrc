@@ -63,6 +63,12 @@ $IAM_HOME/functions/k9s.sh
 has: k9s
 @getSize REPO_ROOT/functions/k9s.sh
 
+tool: opencode functions
+https://raw.githubusercontent.com/chpock/bashrc/master/functions/opencode.sh
+$IAM_HOME/functions/opencode.sh
+has: opencode
+@getSize REPO_ROOT/functions/opencode.sh
+
 tool: edit bashrc
 https://raw.githubusercontent.com/chpock/bashrc/master/functions/bashrc.rc.sh
 $IAM_HOME/functions/bashrc.rc.sh
