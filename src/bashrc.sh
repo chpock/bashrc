@@ -703,7 +703,7 @@ _env_load() {
 }
 
 mkdir -p "$IAM_HOME/tools/bin"
-_addpath -start "$HOME/.local/bin" "$IAM_HOME/tools/bin"
+_addpath -start "$HOME/.cargo/bin" "$HOME/.local/bin" "$IAM_HOME/tools/bin"
 _addpath "/usr/local/bin"
 
 if _is aix; then
