@@ -56,11 +56,11 @@ __opencode_stop_server() {
         local CURRENT_SECONDS="$SECONDS"
         local DURATION="$(( CURRENT_SECONDS - START_SECONDS ))"
         if [ "$DURATION" -gt "$MAX_WAIT_TIMEOUT" ]; then
-            echo "Timeout while waiting for opencode to stop." >&2
+            _err "Timeout while waiting for opencode to stop." >&2
             return 1
         fi
         if [ "$DURATION" -ge 2 ] && [ "$CURRENT_SECONDS" -ne "$LAST_SECONDS" ]; then
-            echo "[$DURATION/$MAX_WAIT_TIMEOUT] Waiting for opencode to stop..."
+            _info "[$DURATION/$MAX_WAIT_TIMEOUT] Waiting for opencode to stop..."
         fi
         LAST_SECONDS="$CURRENT_SECONDS"
         sleep 0.1
@@ -86,15 +86,24 @@ __opencode_start_server() {
     __opencode_stop_server || return 1
     rm -f "$__OPENCODE_STDOUT" "$__OPENCODE_STDERR" "$__OPENCODE_ADDRESS"
     __opencode_get_bin_size > "$__OPENCODE_SIZE_FILE"
-    opencode serve < /dev/null > "$__OPENCODE_STDOUT" 2> "$__OPENCODE_STDERR" &
-    OPENCODE_PID=$!
-    disown "$OPENCODE_PID"
-    echo "$OPENCODE_PID" > "$__OPENCODE_PID_FILE"
+    # Run opencode in subshell. We get 2 benefits from this:
+    # 1. No need to swap monitor mode for shell (using 'set +m'/'set -m'). Monitor mode
+    # for the interactive shell prints the PID of the launched process.
+    # 1. No need to call 'disown $!'
+    (
+        opencode serve < /dev/null > "$__OPENCODE_STDOUT" 2> "$__OPENCODE_STDERR" &
+        echo "$!" > "$__OPENCODE_PID_FILE"
+    )
+    __opencode_get_pid OPENCODE_PID
+    if [ -z "$OPENCODE_PID" ]; then
+        _err "Failed to start opencode server."
+        return 1
+    fi
     local MAX_WAIT_TIMEOUT=10 START_SECONDS="$SECONDS"
     local LAST_SECONDS="$START_SECONDS"
     while true; do
         if ! __opencode_check_pid "$OPENCODE_PID"; then
-            echo "Failed while waiting for opencode to start." >&2
+            _err "Failed while waiting for opencode to start." >&2
             return 1
         fi
         while read -r LINE; do
@@ -106,11 +115,11 @@ __opencode_start_server() {
         local CURRENT_SECONDS="$SECONDS"
         local DURATION="$(( CURRENT_SECONDS - START_SECONDS ))"
         if [ "$DURATION" -gt "$MAX_WAIT_TIMEOUT" ]; then
-            echo "Timeout while waiting for opencode to start." >&2
+            _err "Timeout while waiting for opencode to start." >&2
             return 1
         fi
         if [ "$DURATION" -ge 2 ] && [ "$CURRENT_SECONDS" -ne "$LAST_SECONDS" ]; then
-            echo "[$DURATION/$MAX_WAIT_TIMEOUT] Waiting for opencode to start..."
+            _info "[$DURATION/$MAX_WAIT_TIMEOUT] Waiting for opencode to start..."
         fi
         LAST_SECONDS="$CURRENT_SECONDS"
         sleep 0.1
@@ -156,7 +165,7 @@ __opencode_request() {
     [ -n "$OPENCODE_SERVER_ADDRESS" ] || return
     (
         if ! cd "$__OPENCODE_ROOT"; then
-            echo "Failed to cd into $__OPENCODE_ROOT" >&2
+            _err "Failed to cd into $__OPENCODE_ROOT" >&2
             exit 1
         fi
         TEMP_RESPONSE="$(mktemp)"
