@@ -169,6 +169,36 @@ aws() {
         fi
         (set -x; aws ecr get-login-password --region "$REGION" | command $LOGIN_TARGET login --username AWS --password-stdin "$ECR_HOST")
         ;;
+    eks-describe-addon-versions)
+        if [ -z "$2" ]; then
+            echo "Usage: $0 $1 <kubernetes version>"
+            return 1
+        fi
+        local KUBE_VERSION="$2"
+        aws eks describe-addon-versions \
+            --kubernetes-version "$KUBE_VERSION" \
+            --output json |
+            jq -r '
+            (["ADDON", "DEFAULT_VERSION"] | @tsv),
+            (
+                [
+                .addons[]
+                | .addonName as $name
+                | .addonVersions[]
+                | select(
+                    any(.compatibilities[];
+                        .clusterVersion == "'"$KUBE_VERSION"'" and .defaultVersion == true
+                    )
+                    )
+                | [$name, .addonVersion]
+                ]
+                | sort_by(.[0] | ascii_downcase)
+                | .[]
+                | @tsv
+            )
+            ' |
+            column -t -s $'\t'
+        ;;
     unset-environment-variables)
         _env_unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_DEFAULT_REGION AWS_PROFILE AWS_PROFILE_INACTIVE
         ;;
@@ -242,7 +272,7 @@ __,aws() {
     if [ "$COMP_CWORD" -eq 1 ]; then
         # Disable: Prefer mapfile or read -a to split command output (or quote to avoid splitting). [SC2207]
         # shellcheck disable=SC2207
-        COMPREPLY=($(compgen -W "on off local remote role region eks-update-kubeconfig ecr-auth-docker ecr-auth-helm unset-environment-variables profile update-profile eks-tunnel set-browser" -- "$CUR"))
+        COMPREPLY=($(compgen -W "on off local remote role region eks-update-kubeconfig ecr-auth-docker ecr-auth-helm unset-environment-variables profile update-profile eks-tunnel set-browser eks-describe-addon-versions" -- "$CUR"))
         return
     fi
 
@@ -298,6 +328,21 @@ __,aws() {
             COMPREPLY=($(compgen -W "$(aws configure list-profiles)" -- "$CUR"))
             return
         fi
+        ;;
+    eks-describe-addon-versions)
+        if [ "$COMP_CWORD" -eq 2 ]; then
+            # Disable: Prefer mapfile or read -a to split command output (or quote to avoid splitting). [SC2207]
+            # shellcheck disable=SC2207
+            COMPREPLY=($(compgen -W "$(
+                aws eks describe-cluster-versions \
+                    --query 'clusterVersions[].clusterVersion' \
+                    --output text \
+                    | tr '\t' '\n' \
+                    | sort -V
+            )" -- "$CUR"))
+            return
+        fi
+        ;;
     esac
 
     compopt -o default
