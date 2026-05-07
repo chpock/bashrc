@@ -47,7 +47,7 @@ aws() {
             echo "Usage: ,aws role <role ARN>"
             echo
             echo "Example: ,aws role arn:aws:iam::<AWS ACCOUNT>:role/<AWS ROLE>"
-            exit 1
+            return 1
         fi
         echo "Assume role: $2"
         if [ -n "$AWS_SESSION_TOKEN" ]; then

@@ -16,7 +16,7 @@ has: docker
 tool: AWS CLI functions
 https://raw.githubusercontent.com/chpock/bashrc/master/functions/awscli.sh
 $IAM_HOME/functions/awscli.sh
-15383
+15385
 tool: kubetcl function
 https://raw.githubusercontent.com/chpock/bashrc/master/functions/kubectl.sh
 $IAM_HOME/functions/kubectl.sh

@@ -480,7 +480,7 @@ EOF
 
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
-LOCAL_TOOLS_FILE_HASH=B421A67C
+LOCAL_TOOLS_FILE_HASH=D9EDA67E
 BASHRC_FILE_HASH=D6577609
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
