@@ -481,7 +481,7 @@ EOF
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
 LOCAL_TOOLS_FILE_HASH=D9EDA67E
-BASHRC_FILE_HASH=D6577609
+BASHRC_FILE_HASH=FB37C4FF
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -1779,10 +1779,10 @@ if ! _is in-container && ! _is sudo; then
 local MEM_TOTAL="" MEM_FREE SWAP_TOTAL SWAP_FREE
 if [ -f /proc/meminfo ]; then
 local _buffers=0 _cached=0 _memTotal _memFree _swapTotal _swapFree
-EOF
-cat <<'EOF' >> "$IAM_HOME/bashrc"
 while IFS=$' :\t\r\n' read -r a b c; do
 case "$a" in
+EOF
+cat <<'EOF' >> "$IAM_HOME/bashrc"
 MemTotal)  _memTotal="$b";;
 MemFree)   _memFree="$b";;
 Buffers)   _buffers="$b";;
@@ -1957,6 +1957,10 @@ complete -o default -o nospace -F __start_kpexec ,kpexec
 fi
 ' >>"$IAM_HOME/tools/bash_completion/kpexec.completion.bash"
 fi
+fi
+if _has nelm && [ ! -f "$IAM_HOME/tools/bash_completion/nelm.completion.bash" ];  then
+_info "Generating bash completions for nelm..."
+nelm completion bash >"$IAM_HOME/tools/bash_completion/nelm.completion.bash" 2>/dev/null
 fi
 if [ ! -f "$IAM_HOME/tools/bash_completion/pip.completion.bash" ]; then
 if _has pip3; then

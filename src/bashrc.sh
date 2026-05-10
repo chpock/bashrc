@@ -1997,6 +1997,11 @@ if _has kpexec && [ ! -f "$IAM_HOME/tools/bash_completion/kpexec.completion.bash
     fi
 fi
 
+if _has nelm && [ ! -f "$IAM_HOME/tools/bash_completion/nelm.completion.bash" ];  then
+    _info "Generating bash completions for nelm..."
+    nelm completion bash >"$IAM_HOME/tools/bash_completion/nelm.completion.bash" 2>/dev/null
+fi
+
 if [ ! -f "$IAM_HOME/tools/bash_completion/pip.completion.bash" ]; then
     # Remove '\r' here, as Python can be compiled for Windows, and pip in
     # this case creates scripts with CRLF new lines.
