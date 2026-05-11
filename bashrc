@@ -481,7 +481,7 @@ EOF
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
 LOCAL_TOOLS_FILE_HASH=D9E9A67E
-BASHRC_FILE_HASH=FB37C4FF
+BASHRC_FILE_HASH=2B382935
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -1781,11 +1781,11 @@ if [ -f /proc/meminfo ]; then
 local _buffers=0 _cached=0 _memTotal _memFree _swapTotal _swapFree
 while IFS=$' :\t\r\n' read -r a b c; do
 case "$a" in
-EOF
-cat <<'EOF' >> "$IAM_HOME/bashrc"
 MemTotal)  _memTotal="$b";;
 MemFree)   _memFree="$b";;
 Buffers)   _buffers="$b";;
+EOF
+cat <<'EOF' >> "$IAM_HOME/bashrc"
 Cached)    _cached="$b";;
 SwapTotal) _swapTotal="$b";;
 SwapFree)  _swapFree="$b";;
@@ -1988,6 +1988,7 @@ fi
 KUBECONFIG="$IAM_HOME/kubeconfig"
 export KUBECONFIG
 unset MAILCHECK
+[ "$SYSTEMD_COLORS" != "false" ] || unset SYSTEMD_COLORS
 if _has git; then
 __GIT_VERSION="$(command git --version | awk '{print $3}')"
 GIT_CONFIG_GLOBAL="$IAM_HOME/gitconfig"

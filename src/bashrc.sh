@@ -2042,6 +2042,11 @@ export KUBECONFIG
 # Don't want my shell to warn me of incoming mail.
 unset MAILCHECK
 
+# Some distributions, including Amazon Linux, may export SYSTEMD_COLORS=false
+# from /etc/profile.d/systemd.sh. This disables colors in systemd tools like
+# journalctl/systemctl, so unset it to restore default auto color detection.
+[ "$SYSTEMD_COLORS" != "false" ] || unset SYSTEMD_COLORS
+
 if _has git; then
     __GIT_VERSION="$(command git --version | awk '{print $3}')"
 
