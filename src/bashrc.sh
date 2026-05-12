@@ -2285,6 +2285,8 @@ alias tailf='tail -F'
 
 alias ff='find . -name'
 
+_hasnot terragrunt || alias tg='terragrunt'
+
 if _has vim; then
     EDITOR="vim -u $IAM_HOME/vimrc -i $IAM_HOME/viminfo"
 elif _has vi; then
