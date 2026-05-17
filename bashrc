@@ -67,6 +67,8 @@ set ttimeout
 set ttimeoutlen=100
 set wildmenu
 set wildignore=*.swp,*.bak,*.pyc,*.class
+nnoremap <Space> <Nop>
+let mapleader = " "
 set directory=$IAM_HOME/vim_swap//,~/tmp//,/var/tmp//,/tmp//,.
 set runtimepath=$IAM_HOME/vim_runtime,$VIMRUNTIME
 if version >= 600
@@ -462,6 +464,33 @@ au BufWinEnter * hi WhitespaceEOL ctermbg=red guibg=red | match WhitespaceEOL /\
 au InsertEnter * match WhitespaceEOL /\s\+\%#\@<!$/
 au InsertLeave * match WhitespaceEOL /\s\+$/
 au BufWinLeave * call clearmatches()
+augroup END
+let s:gen_commit_msg_height = 5
+func! <SID>GenCommitMsgCallback(orig_bufnr, term_bufnr, tmpfile, job, status)
+if a:status == 0
+if filereadable(a:tmpfile) && getfsize(a:tmpfile) > 0
+let l:output = readfile(a:tmpfile)
+call appendbufline(a:orig_bufnr, 0, l:output)
+endif
+endif
+call delete(a:tmpfile)
+if a:status == 0 || a:status == 130
+execute 'silent! bwipeout! ' . a:term_bufnr
+else
+echohl WarningMsg | echo 'Command failed with status: ' . a:status | echohl None
+endif
+endfunc
+func! <SID>GenCommitMsg()
+let l:tmpfile = tempname()
+let l:cmd = 'gen-commit-msg --subject-max ' . shellescape(s:gen_commit_msg_height) . ' --output ' . shellescape(l:tmpfile)
+let l:orig_bufnr = bufnr('%')
+execute 'topleft ' . s:gen_commit_msg_height . 'split | enew'
+let l:Callback = function('<SID>GenCommitMsgCallback', [l:orig_bufnr, bufnr('%'), l:tmpfile])
+call term_start([&shell, &shellcmdflag, l:cmd], {'curwin': 1, 'exit_cb': l:Callback})
+endfunc
+augroup GitCommitMapping
+au!
+au FileType gitcommit nnoremap <buffer> <Leader>O :call <SID>GenCommitMsg()<CR>
 augroup END
 augroup SpecialFileTypes
 au!

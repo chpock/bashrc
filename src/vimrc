@@ -49,6 +49,13 @@ set ttimeoutlen=100   " wait time for an escape sequence (e.g., arrow keys).
 set wildmenu   " enhanced command-line completion
 set wildignore=*.swp,*.bak,*.pyc,*.class
 
+" Use Space as a prefix key only: disable its default Normal-mode action
+" of moving the cursor right when pressed by itself.
+nnoremap <Space> <Nop>
+" Set the <Leader> key to Space. This must be done before defining any
+" mappings that use <Leader>.
+let mapleader = " "
+
 " store swap files in my home / temp directories, but not in current directory
 " Use // at the end of the filename makes vim use absolute file paths for
 " the swap file names so you don't get name collisions.
@@ -530,6 +537,39 @@ augroup WhitespacesEOL
     au InsertEnter * match WhitespaceEOL /\s\+\%#\@<!$/
     au InsertLeave * match WhitespaceEOL /\s\+$/
     au BufWinLeave * call clearmatches()
+augroup END
+
+" Git auto-commit-message
+
+let s:gen_commit_msg_height = 5
+
+func! <SID>GenCommitMsgCallback(orig_bufnr, term_bufnr, tmpfile, job, status)
+    if a:status == 0
+        if filereadable(a:tmpfile) && getfsize(a:tmpfile) > 0
+            let l:output = readfile(a:tmpfile)
+            call appendbufline(a:orig_bufnr, 0, l:output)
+        endif
+    endif
+    call delete(a:tmpfile)
+    if a:status == 0 || a:status == 130
+        execute 'silent! bwipeout! ' . a:term_bufnr
+    else
+        echohl WarningMsg | echo 'Command failed with status: ' . a:status | echohl None
+    endif
+endfunc
+
+func! <SID>GenCommitMsg()
+    let l:tmpfile = tempname()
+    let l:cmd = 'gen-commit-msg --subject-max ' . shellescape(s:gen_commit_msg_height) . ' --output ' . shellescape(l:tmpfile)
+    let l:orig_bufnr = bufnr('%')
+    execute 'topleft ' . s:gen_commit_msg_height . 'split | enew'
+    let l:Callback = function('<SID>GenCommitMsgCallback', [l:orig_bufnr, bufnr('%'), l:tmpfile])
+    call term_start([&shell, &shellcmdflag, l:cmd], {'curwin': 1, 'exit_cb': l:Callback})
+endfunc
+
+augroup GitCommitMapping
+    au!
+    au FileType gitcommit nnoremap <buffer> <Leader>O :call <SID>GenCommitMsg()<CR>
 augroup END
 
 " Special file types
