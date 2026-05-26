@@ -682,7 +682,7 @@ _env_unset() {
 }
 
 _env_save() {
-    local ENV_FN="$_SHELL_SESSION_DIR"/env-persistent
+    local ENV_FN="${_TMUX_WINDOW_DIR:-"${_TERM_SESSION_DIR:-"$_SHELL_SESSION_DIR"}"}"/env-persistent
     {
         declare -p __PERSISTENT_ENV
         for ITEM in "${__PERSISTENT_ENV[@]}"; do
@@ -693,7 +693,7 @@ _env_save() {
 }
 
 _env_load() {
-    local ENV_FN="$_SHELL_SESSION_DIR"/env-persistent
+    local ENV_FN="${_TMUX_WINDOW_DIR:-"${_TERM_SESSION_DIR:-"$_SHELL_SESSION_DIR"}"}"/env-persistent
     for ITEM in "${__PERSISTENT_ENV[@]}"; do
         unset "$ITEM"
     done

@@ -510,7 +510,7 @@ EOF
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
 LOCAL_TOOLS_FILE_HASH=6338DC08
-BASHRC_FILE_HASH=15D8AA15
+BASHRC_FILE_HASH=5D2EC625
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -1031,7 +1031,7 @@ done
 [ "$CHANGED" -eq 0 ] || _env_save
 }
 _env_save() {
-local ENV_FN="$_SHELL_SESSION_DIR"/env-persistent
+local ENV_FN="${_TMUX_WINDOW_DIR:-"${_TERM_SESSION_DIR:-"$_SHELL_SESSION_DIR"}"}"/env-persistent
 {
 declare -p __PERSISTENT_ENV
 for ITEM in "${__PERSISTENT_ENV[@]}"; do
@@ -1041,7 +1041,7 @@ done
 chmod 0600 "$ENV_FN"
 }
 _env_load() {
-local ENV_FN="$_SHELL_SESSION_DIR"/env-persistent
+local ENV_FN="${_TMUX_WINDOW_DIR:-"${_TERM_SESSION_DIR:-"$_SHELL_SESSION_DIR"}"}"/env-persistent
 for ITEM in "${__PERSISTENT_ENV[@]}"; do
 unset "$ITEM"
 done
