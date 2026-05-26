@@ -16,11 +16,11 @@ has: docker
 tool: AWS CLI functions
 https://raw.githubusercontent.com/chpock/bashrc/master/functions/awscli.sh
 $IAM_HOME/functions/awscli.sh
-15385
+15540
 tool: kubetcl function
 https://raw.githubusercontent.com/chpock/bashrc/master/functions/kubectl.sh
 $IAM_HOME/functions/kubectl.sh
-5611
+7281
 tool: rancher function
 https://raw.githubusercontent.com/chpock/bashrc/master/functions/rancher.sh
 $IAM_HOME/functions/rancher.sh

@@ -2703,7 +2703,7 @@ __kubectl_status() {
         return 0
     fi
 
-    # If we just checking if AWS status is required, then return that flag now
+    # If we just checking if K8S status is required, then return that flag now
     [ "$1" != "-check" ] || return 1
 
     local CONFIG CONFIG_MSG MSG STDERR
@@ -2713,9 +2713,10 @@ __kubectl_status() {
     else
         CONFIG="$KUBECONFIG"
     fi
-    _homify -v CONFIG_MSG "$CONFIG"
+    CONFIG_MSG="${CONFIG#"$_KUBECONFIG_BASE"/}"
+    [ "$CONFIG" != "$CONFIG_MSG" ] || _homify -v CONFIG_MSG "$CONFIG"
 
-    cprintf -v MSG '~K~[~W~K8S~K~: ~c~%s' "$CONFIG_MSG"
+    cprintf -v MSG '~K~[~W~K8S~K~: ~d~config~K~: ~c~%s' "$CONFIG_MSG"
 
     if [ ! -e "$CONFIG" ]; then
         cprintf -A MSG "- ~r~DOESN'T EXIST"

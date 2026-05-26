@@ -37,6 +37,7 @@ k() {
 ,kube() {
 
     local __K8S_CONF
+    local KUBECONFIG_DEFAULT="$_KUBECONFIG_BASE/default"
 
     if [ -n "$1" ] && ! _has kubectl; then
         _err 'kubectl command is not available in this environment'
@@ -50,24 +51,43 @@ k() {
         off)
             rm -f "$IAM_HOME/state/on_kube"
         ;;
-        conf)
+        set-default-config)
+            if [ -z "$KUBECONFIG" ]; then
+                _err "KUBECONFIG env variable is unset."
+                return 1
+            elif [ "$KUBECONFIG" = "$KUBECONFIG_DEFAULT" ]; then
+                _err "KUBECONFIG is default already: %s" "$KUBECONFIG"
+                return 1
+            fi
+            local LINK="${KUBECONFIG#"$_KUBECONFIG_BASE"/}"
+            ln -sf "$LINK" "$KUBECONFIG_DEFAULT"
+            ,kube config default
+        ;;
+        config)
             if [ -z "$2" ]; then
                 _err 'the kubeconfig is not specified'
                 echo
-                echo "Usage: ,kube conf <kubeconfig file>"
+                echo "Usage: ,kube config <kubeconfig file>"
                 return 1
             fi
             __K8S_CONF="$2"
             if [ "${DIR:0:1}" != "/" ]; then
-                __K8S_CONF="$PWD/$__K8S_CONF"
+                __K8S_CONF="$_KUBECONFIG_BASE/$__K8S_CONF"
             fi
-            if [ ! -f "$__K8S_CONF" ]; then
+            if [ ! -e "$__K8S_CONF" ]; then
                 _err "the specified kubeconfig file doesn't exist: '%s'" "$__K8S_CONF"
-                echo
-                echo "Usage: ,kube conf <kubeconfig file>"
+                return 1
+            elif [ ! -f "$__K8S_CONF" ]; then
+                _err "the specified kubeconfig is not a file: '%s'" "$__K8S_CONF"
                 return 1
             fi
-            export KUBECONFIG="$__K8S_CONF"
+            if [ "$__K8S_CONF" = "$KUBECONFIG_DEFAULT" ]; then
+                _env_unset KUBECONFIG
+                KUBECONFIG="$KUBECONFIG_DEFAULT"
+                export KUBECONFIG
+            else
+                _env_set KUBECONFIG="$__K8S_CONF"
+            fi
         ;;
         ns)
             if [ -z "$2" ]; then
@@ -110,19 +130,36 @@ k() {
 __kube_complete() {
 
     local __VAR
+    local CURRENT="${COMP_WORDS[COMP_CWORD]}"
 
     COMPREPLY=()
 
     if [ "$COMP_CWORD" -lt 2 ]; then
         # Disable: Prefer mapfile or read -a to split command output (or quote to avoid splitting). [SC2207]
         # shellcheck disable=SC2207
-        COMPREPLY=($(compgen -W "on off context conf ns events" -- "${COMP_WORDS[1]}"))
+        COMPREPLY=($(compgen -W "on off context config ns events set-default-config" -- "$CURRENT"))
         return
     fi
 
     case "${COMP_WORDS[1]}" in
-        conf)
-            compopt -o default
+        config)
+            compopt -o filenames
+            local FULL_PATH REL_PATH
+            while IFS= read -r FULL_PATH; do
+                REL_PATH="${FULL_PATH#"$_KUBECONFIG_BASE"/}"
+                if [ -d "$FULL_PATH" ]; then
+                    # Directories are shown only to allow traversal.
+                    COMPREPLY+=("${REL_PATH}/")
+                else
+                    # Only regular files/symlinks are valid final completions.
+                    COMPREPLY+=("${REL_PATH}")
+                fi
+            done < <(compgen -f -- "$_KUBECONFIG_BASE/$CURRENT")
+
+            # If the only match is a directory, do not append a space after completion.
+            if [ "${#COMPREPLY[@]}" -eq 1 ] && [ "${COMPREPLY[0]%/}" != "${COMPREPLY[0]}" ]; then
+                compopt -o nospace
+            fi
         ;;
         context)
             if ! __VAR="$(kubectl config get-contexts --output=name 2>&1)"; then
@@ -132,7 +169,7 @@ __kube_complete() {
             else
                 # Disable: Prefer mapfile or read -a to split command output (or quote to avoid splitting). [SC2207]
                 # shellcheck disable=SC2207
-                COMPREPLY=($(compgen -W "$__VAR" -- "${COMP_WORDS[2]}"))
+                COMPREPLY=($(compgen -W "$__VAR" -- "$CURRENT"))
             fi
         ;;
         ns)
@@ -143,7 +180,7 @@ __kube_complete() {
             else
                 # Disable: Prefer mapfile or read -a to split command output (or quote to avoid splitting). [SC2207]
                 # shellcheck disable=SC2207
-                COMPREPLY=($(compgen -W "$__VAR" -- "${COMP_WORDS[2]}"))
+                COMPREPLY=($(compgen -W "$__VAR" -- "$CURRENT"))
             fi
         ;;
     esac

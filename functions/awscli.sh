@@ -94,6 +94,9 @@ aws() {
         # and the ability to switch between them. However, this is not
         # a critical functionality, and it is easier to simply update
         # the $KUBECONFIG for the other cluster to switch between them.
+        local BASE_KUBECONFIG_PATH="$_KUBECONFIG_BASE/eks"
+        mkdir -p "$BASE_KUBECONFIG_PATH"
+        _env_set KUBECONFIG="$BASE_KUBECONFIG_PATH/$2"
         rm -f "$KUBECONFIG"
         (set -x; aws eks update-kubeconfig --name "$2" --alias "eks/$2")
         # By default, aws eks update-kubeconfig uses cluster ARN as context name,

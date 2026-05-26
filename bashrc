@@ -509,8 +509,8 @@ EOF
 
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
-LOCAL_TOOLS_FILE_HASH=8CCADC0A
-BASHRC_FILE_HASH=08CA901A
+LOCAL_TOOLS_FILE_HASH=6338DC08
+BASHRC_FILE_HASH=15D8AA15
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -2462,8 +2462,9 @@ CONFIG="$HOME/.kube/config"
 else
 CONFIG="$KUBECONFIG"
 fi
-_homify -v CONFIG_MSG "$CONFIG"
-cprintf -v MSG '~K~[~W~K8S~K~: ~c~%s' "$CONFIG_MSG"
+CONFIG_MSG="${CONFIG#"$_KUBECONFIG_BASE"/}"
+[ "$CONFIG" != "$CONFIG_MSG" ] || _homify -v CONFIG_MSG "$CONFIG"
+cprintf -v MSG '~K~[~W~K8S~K~: ~d~config~K~: ~c~%s' "$CONFIG_MSG"
 if [ ! -e "$CONFIG" ]; then
 cprintf -A MSG "- ~r~DOESN'T EXIST"
 else
