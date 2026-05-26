@@ -839,11 +839,13 @@ fi
         "$IAM_HOME/shell.rc"
     # Remove outdated bash completions if they exist
     rm -f \
-    "$IAM_HOME/tools/bash_completion"/ecconfigure.completion.bash \
-    "$IAM_HOME/tools/bash_completion"/ectool.completion.bash \
-    "$IAM_HOME/tools/bash_completion"/electricflow.completion.bash \
-    "$IAM_HOME/tools/bash_completion"/virtualbox.completion.bash \
-    "$IAM_HOME/tools/bash_completion"/makefile.completion.bash
+        "$IAM_HOME/tools/bash_completion"/ecconfigure.completion.bash \
+        "$IAM_HOME/tools/bash_completion"/ectool.completion.bash \
+        "$IAM_HOME/tools/bash_completion"/electricflow.completion.bash \
+        "$IAM_HOME/tools/bash_completion"/virtualbox.completion.bash \
+        "$IAM_HOME/tools/bash_completion"/makefile.completion.bash
+    # Ramove this only if it is a file
+    [ ! -f "$IAM_HOME/kubeconfig" ] || rm -f "$IAM_HOME/kubeconfig"
 }
 
 if [ -n "$__KITTY_ID" ]; then
@@ -2036,8 +2038,14 @@ elif [ -f /usr/lib/google-cloud-sdk/completion.bash.inc ]; then
     . /usr/lib/google-cloud-sdk/completion.bash.inc
 fi
 
-KUBECONFIG="$IAM_HOME/kubeconfig"
-export KUBECONFIG
+_KUBECONFIG_BASE="$IAM_HOME/kubeconfig"
+mkdir -p "$_KUBECONFIG_BASE"
+
+# Set default kubeconfig only if it was not loaded by _env_load
+[ -n "$KUBECONFIG" ] || {
+    KUBECONFIG="$_KUBECONFIG_BASE/default"
+    export KUBECONFIG
+}
 
 # Don't want my shell to warn me of incoming mail.
 unset MAILCHECK

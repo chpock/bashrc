@@ -54,7 +54,7 @@ k() {
             if [ -z "$2" ]; then
                 _err 'the kubeconfig is not specified'
                 echo
-                echo "Usage: kube conf <kubeconfig file>"
+                echo "Usage: ,kube conf <kubeconfig file>"
                 return 1
             fi
             __K8S_CONF="$2"
@@ -64,7 +64,7 @@ k() {
             if [ ! -f "$__K8S_CONF" ]; then
                 _err "the specified kubeconfig file doesn't exist: '%s'" "$__K8S_CONF"
                 echo
-                echo "Usage: kube conf <kubeconfig file>"
+                echo "Usage: ,kube conf <kubeconfig file>"
                 return 1
             fi
             export KUBECONFIG="$__K8S_CONF"
@@ -73,7 +73,7 @@ k() {
             if [ -z "$2" ]; then
                 _err "the namespace is not specified"
                 echo
-                echo "Usage: kube ns <namespace>"
+                echo "Usage: ,kube ns <namespace>"
                 return 1
             fi
             kubectl config set-context "$(kubectl config current-context)" --namespace "$2"
@@ -82,7 +82,7 @@ k() {
             if [ -z "$2" ]; then
                 _err "the context is not specified"
                 echo
-                echo "Usage: kube context <context>"
+                echo "Usage: ,kube context <context>"
                 return 1
             fi
             kubectl config use-context "$2"
@@ -93,7 +93,7 @@ k() {
         ;;
         *)
             [ -n "$1" ] && echo "Unknown command '$1'"
-            echo "Usage: kube <command>"
+            echo "Usage: ,kube <command>"
             echo
             echo "Available commands:"
             echo "  conf   - set the current kubeconfig"

@@ -30,6 +30,12 @@ https://raw.githubusercontent.com/chpock/bashrc/master/functions/kubectl.sh
 $IAM_HOME/functions/kubectl.sh
 @getSize REPO_ROOT/functions/kubectl.sh
 
+tool: rancher function
+https://raw.githubusercontent.com/chpock/bashrc/master/functions/rancher.sh
+$IAM_HOME/functions/rancher.sh
+has: rancher
+@getSize REPO_ROOT/functions/rancher.sh
+
 tool: tmux function
 https://raw.githubusercontent.com/chpock/bashrc/master/functions/tmux.sh
 $IAM_HOME/functions/tmux.sh

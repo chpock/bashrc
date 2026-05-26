@@ -509,8 +509,8 @@ EOF
 
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
-LOCAL_TOOLS_FILE_HASH=CD65A658
-BASHRC_FILE_HASH=1B9739B9
+LOCAL_TOOLS_FILE_HASH=8CCADC0A
+BASHRC_FILE_HASH=08CA901A
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -1127,6 +1127,7 @@ rm -f \
 "$IAM_HOME/tools/bash_completion"/electricflow.completion.bash \
 "$IAM_HOME/tools/bash_completion"/virtualbox.completion.bash \
 "$IAM_HOME/tools/bash_completion"/makefile.completion.bash
+[ ! -f "$IAM_HOME/kubeconfig" ] || rm -f "$IAM_HOME/kubeconfig"
 }
 if [ -n "$__KITTY_ID" ]; then
 _TERM_SESSION_ID="$__KITTY_ID"
@@ -1814,10 +1815,10 @@ MemTotal)  _memTotal="$b";;
 MemFree)   _memFree="$b";;
 Buffers)   _buffers="$b";;
 Cached)    _cached="$b";;
-EOF
-cat <<'EOF' >> "$IAM_HOME/bashrc"
 SwapTotal) _swapTotal="$b";;
 SwapFree)  _swapFree="$b";;
+EOF
+cat <<'EOF' >> "$IAM_HOME/bashrc"
 esac
 done < /proc/meminfo
 MEM_TOTAL=$(( _memTotal / 1024 ))
@@ -2014,8 +2015,12 @@ if [ -f ~/gcloud/google-cloud-sdk/completion.bash.inc ]; then
 elif [ -f /usr/lib/google-cloud-sdk/completion.bash.inc ]; then
 . /usr/lib/google-cloud-sdk/completion.bash.inc
 fi
-KUBECONFIG="$IAM_HOME/kubeconfig"
+_KUBECONFIG_BASE="$IAM_HOME/kubeconfig"
+mkdir -p "$_KUBECONFIG_BASE"
+[ -n "$KUBECONFIG" ] || {
+KUBECONFIG="$_KUBECONFIG_BASE/default"
 export KUBECONFIG
+}
 unset MAILCHECK
 [ "$SYSTEMD_COLORS" != "false" ] || unset SYSTEMD_COLORS
 if _has git; then

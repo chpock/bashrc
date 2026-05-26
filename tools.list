@@ -20,7 +20,12 @@ $IAM_HOME/functions/awscli.sh
 tool: kubetcl function
 https://raw.githubusercontent.com/chpock/bashrc/master/functions/kubectl.sh
 $IAM_HOME/functions/kubectl.sh
-5606
+5611
+tool: rancher function
+https://raw.githubusercontent.com/chpock/bashrc/master/functions/rancher.sh
+$IAM_HOME/functions/rancher.sh
+has: rancher
+1951
 tool: tmux function
 https://raw.githubusercontent.com/chpock/bashrc/master/functions/tmux.sh
 $IAM_HOME/functions/tmux.sh
