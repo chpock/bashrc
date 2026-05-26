@@ -25,7 +25,7 @@ tool: rancher function
 https://raw.githubusercontent.com/chpock/bashrc/master/functions/rancher.sh
 $IAM_HOME/functions/rancher.sh
 has: rancher
-1951
+2058
 tool: tmux function
 https://raw.githubusercontent.com/chpock/bashrc/master/functions/tmux.sh
 $IAM_HOME/functions/tmux.sh
