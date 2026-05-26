@@ -49,6 +49,7 @@ __INSTALL_VERSION="
   cht.sh        0.0.4
   bazelisk      1.27.0
   fx            39.2.0
+  rancher       2.14.1
 "
 
 __install_bazelisk() {
@@ -107,6 +108,24 @@ __install_kor() {
     local FORMAT URL="https://github.com/yonahd/kor/releases/download/v${VERSION}/kor_"
     __install_make_url "
         linux-x64   Linux_x86_64.tar.gz
+    " && __install_download && __install_unpack &&  __install_bin || return $?
+}
+
+__install_rancher() {
+    local VERSION="$1" EXECUTABLE="$2"
+
+    if [ "$VERSION" = "-check" ]; then
+        __install_check_version "$EXECUTABLE" --version \
+            | awk '{print $NF}' | tr -d 'v'
+        return 0
+    elif [ "$VERSION" = "-latest" ]; then
+        __install_get_latest_github "rancher/cli"
+        return 0
+    fi
+
+    local FORMAT URL="https://github.com/rancher/cli/releases/download/v${VERSION}/rancher-"
+    __install_make_url "
+        linux-x64   linux-amd64-v${VERSION}.tar.xz
     " && __install_download && __install_unpack &&  __install_bin || return $?
 }
 
