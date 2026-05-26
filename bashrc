@@ -510,7 +510,7 @@ EOF
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
 LOCAL_TOOLS_FILE_HASH=50CADC07
-BASHRC_FILE_HASH=5D2EC625
+BASHRC_FILE_HASH=11C5D2D9
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -2017,10 +2017,10 @@ elif [ -f /usr/lib/google-cloud-sdk/completion.bash.inc ]; then
 fi
 _KUBECONFIG_BASE="$IAM_HOME/kubeconfig"
 mkdir -p "$_KUBECONFIG_BASE"
-[ -n "$KUBECONFIG" ] || {
+if [ -z "$KUBECONFIG" ] || [ "$KUBECONFIG" = "$_KUBECONFIG_BASE" ]; then
 KUBECONFIG="$_KUBECONFIG_BASE/default"
 export KUBECONFIG
-}
+fi
 unset MAILCHECK
 [ "$SYSTEMD_COLORS" != "false" ] || unset SYSTEMD_COLORS
 if _has git; then

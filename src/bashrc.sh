@@ -2042,10 +2042,10 @@ _KUBECONFIG_BASE="$IAM_HOME/kubeconfig"
 mkdir -p "$_KUBECONFIG_BASE"
 
 # Set default kubeconfig only if it was not loaded by _env_load
-[ -n "$KUBECONFIG" ] || {
+if [ -z "$KUBECONFIG" ] || [ "$KUBECONFIG" = "$_KUBECONFIG_BASE" ]; then
     KUBECONFIG="$_KUBECONFIG_BASE/default"
     export KUBECONFIG
-}
+fi
 
 # Don't want my shell to warn me of incoming mail.
 unset MAILCHECK
