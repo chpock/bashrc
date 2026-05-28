@@ -2293,7 +2293,15 @@ alias tailf='tail -F'
 
 alias ff='find . -name'
 
-_hasnot terragrunt || alias tg='terragrunt'
+if _has terragrunt; then
+    alias tg='terragrunt'
+    tga() {
+        if [ "$1" = "apply" ] || [ "$2" = "destroy" ]; then
+            set -- "$@" -auto-approve
+        fi
+        terragrunt "$@"
+    }
+fi
 
 if _has vim; then
     EDITOR="vim -u $IAM_HOME/vimrc -i $IAM_HOME/viminfo"

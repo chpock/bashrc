@@ -50,6 +50,7 @@ __INSTALL_VERSION="
   bazelisk      1.27.0
   fx            39.2.0
   rancher       2.14.1
+  diffyml       1.6.1
 "
 
 __install_bazelisk() {
@@ -108,6 +109,24 @@ __install_kor() {
     local FORMAT URL="https://github.com/yonahd/kor/releases/download/v${VERSION}/kor_"
     __install_make_url "
         linux-x64   Linux_x86_64.tar.gz
+    " && __install_download && __install_unpack &&  __install_bin || return $?
+}
+
+__install_diffyml() {
+    local VERSION="$1" EXECUTABLE="$2"
+
+    if [ "$VERSION" = "-check" ]; then
+        __install_check_version "$EXECUTABLE" --version \
+            | awk '{print $3}'
+        return 0
+    elif [ "$VERSION" = "-latest" ]; then
+        __install_get_latest_github "szhekpisov/diffyml"
+        return 0
+    fi
+
+    local FORMAT URL="https://github.com/szhekpisov/diffyml/releases/download/v${VERSION}/diffyml_${VERSION}_"
+    __install_make_url "
+        linux-x64   linux_amd64.tar.gz
     " && __install_download && __install_unpack &&  __install_bin || return $?
 }
 
