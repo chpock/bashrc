@@ -33,6 +33,7 @@ EOF
 
 cat <<'EOF' > "$IAM_HOME/vimrc"
 set nocompatible
+set relativenumber
 set t_Co=256
 set nowrap
 set tabstop=4
