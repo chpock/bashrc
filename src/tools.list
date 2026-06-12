@@ -205,6 +205,32 @@ https://raw.githubusercontent.com/dylnmc/synstack.vim/master/autoload/synstack.v
 $IAM_HOME/vim_runtime/autoload/synstack.vim
 2316
 
+# DOC: https://github.com/justinmk/vim-sneak
+tool: vim plugin vim-sneak (autoload/sneak/label.vim)
+https://raw.githubusercontent.com/justinmk/vim-sneak/master/autoload/sneak/label.vim
+$IAM_HOME/vim_runtime/autoload/sneak/label.vim
+7671
+
+tool: vim plugin vim-sneak (autoload/sneak/search.vim)
+https://raw.githubusercontent.com/justinmk/vim-sneak/master/autoload/sneak/search.vim
+$IAM_HOME/vim_runtime/autoload/sneak/search.vim
+2710
+
+tool: vim plugin vim-sneak (autoload/sneak/util.vim)
+https://raw.githubusercontent.com/justinmk/vim-sneak/master/autoload/sneak/util.vim
+$IAM_HOME/vim_runtime/autoload/sneak/util.vim
+4912
+
+tool: vim plugin vim-sneak (plugin)
+https://raw.githubusercontent.com/justinmk/vim-sneak/master/plugin/sneak.vim
+$IAM_HOME/vim_runtime/plugin/sneak.vim
+6879
+
+tool: vim plugin vim-sneak (autoload)
+https://raw.githubusercontent.com/justinmk/vim-sneak/master/autoload/sneak.vim
+$IAM_HOME/vim_runtime/autoload/sneak.vim
+12169
+
 # Tclsh
 
 tool: tcl readline
