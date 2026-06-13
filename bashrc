@@ -134,10 +134,10 @@ let &list = g:paste_list
 endif
 redrawstatus!
 endfunc
-augroup PasteGuardAU
+aug PasteGuardAU
 au!
 au InsertLeave * if mode(1) == "n" && &paste | set nopaste | endif
-augroup END
+aug END
 nnoremap <silent> <special> <F2> :let g:paste_guard=1<CR>:set invpaste<CR>
 inoremap <silent> <special> <F2> <C-O>:let g:paste_guard=1<CR><C-O>:set invpaste<CR>
 set pastetoggle=<F2>
@@ -433,10 +433,10 @@ if foldclosed(".") != -1
 execute "normal! zvzz"
 endif
 endfunc
-augroup RestoreCursorPosition
+aug RestoreCursorPosition
 au!
 au BufWinEnter * call <SID>lastplace()
-augroup END
+aug END
 func! <SID>stripTrailingWhitespace()
 normal mZ
 let l:winview = winsaveview()
@@ -449,23 +449,23 @@ call winrestview(l:winview)
 endfunc
 func! ToggleStripTrailingWhitespace()
 if exists('#StripTrailingWhitespace#BufWritePre')
-augroup StripTrailingWhitespace
+aug StripTrailingWhitespace
 au!
-augroup END
+aug END
 else
-augroup StripTrailingWhitespace
+aug StripTrailingWhitespace
 au!
 au BufWritePre * call <SID>stripTrailingWhitespace()
-augroup END
+aug END
 endif
 endfunc
-augroup WhitespacesEOL
+aug WhitespacesEOL
 au!
 au BufWinEnter * hi WhitespaceEOL ctermbg=red guibg=red | match WhitespaceEOL /\s\+$/
 au InsertEnter * match WhitespaceEOL /\s\+\%#\@<!$/
 au InsertLeave * match WhitespaceEOL /\s\+$/
 au BufWinLeave * call clearmatches()
-augroup END
+aug END
 let s:gen_commit_msg_height = 5
 func! <SID>GenCommitMsgCallback(orig_bufnr, term_bufnr, tmpfile, job, status)
 if a:status == 0
@@ -489,20 +489,24 @@ execute 'topleft ' . s:gen_commit_msg_height . 'split | enew'
 let l:Callback = function('<SID>GenCommitMsgCallback', [l:orig_bufnr, bufnr('%'), l:tmpfile])
 call term_start([&shell, &shellcmdflag, l:cmd], {'curwin': 1, 'exit_cb': l:Callback})
 endfunc
-augroup GitCommitMapping
+aug GitCommitMapping
 au!
 au FileType gitcommit nnoremap <buffer> <Leader>O :call <SID>GenCommitMsg()<CR>
-augroup END
-augroup SpecialFileTypes
+aug END
+aug SpecialFileTypes
 au!
 au BufNewFile,BufReadPost *.{yaml,yml} set filetype=yaml
 au FileType yaml setlocal ts=2 sts=2 sw=2 expandtab indentkeys-=0# indentkeys-=0} indentkeys-=0] indentkeys-=<:> indentkeys-=0-
 au FileType html,xml setlocal listchars-=tab:>.
-augroup END
+aug END
 command ToggleStripTrailingWhitespace :call ToggleStripTrailingWhitespace()
 call ToggleStripTrailingWhitespace()
 let g:colorizer_auto_filetype = 'css,html'
 let g:colorizer_fgcontrast = 0
+aug SafeSneak
+au!
+autocmd VimEnter * if exists('g:loaded_sneak_plugin') | for k in split('f F t T') | exe 'map '.k.' <Plug>Sneak_'.k | endfor | endif
+aug END
 if !empty($WAYLAND_DISPLAY)
 au TextYankPost * if (v:event.operator == 'y') | silent! execute 'call system("wl-copy", @")' | endif
 endif

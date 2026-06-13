@@ -154,12 +154,12 @@ func! PasteChange()
 endfunc
 
 " This autocommand turns the paste mode off when leaving INSERT mode.
-augroup PasteGuardAU
+aug PasteGuardAU
     au!
     " Turn off paste only for real NORMAL mode (when mode(1) returns "n"),
     " but not for C-o in INSERT (when mode(1) returns "niI", "no", etc.)
     au InsertLeave * if mode(1) == "n" && &paste | set nopaste | endif
-augroup END
+aug END
 
 "nnoremap <silent> <special> <F2> :set paste<CR>i
 "nnoremap <silent> <special> <F2> :set invpaste invnumber invlist<CR>
@@ -501,10 +501,10 @@ function! <SID>lastplace()
   endif
 endfunc
 
-augroup RestoreCursorPosition
+aug RestoreCursorPosition
     au!
     au BufWinEnter * call <SID>lastplace()
-augroup END
+aug END
 
 " Strip trailing whitespaces on save
 func! <SID>stripTrailingWhitespace()
@@ -520,25 +520,25 @@ endfunc
 
 func! ToggleStripTrailingWhitespace()
     if exists('#StripTrailingWhitespace#BufWritePre')
-        augroup StripTrailingWhitespace
+        aug StripTrailingWhitespace
             au!
-        augroup END
+        aug END
     else
-        augroup StripTrailingWhitespace
+        aug StripTrailingWhitespace
             au!
             au BufWritePre * call <SID>stripTrailingWhitespace()
-        augroup END
+        aug END
     endif
 endfunc
 
 " Hightlight EOL whitespaces
-augroup WhitespacesEOL
+aug WhitespacesEOL
     au!
     au BufWinEnter * hi WhitespaceEOL ctermbg=red guibg=red | match WhitespaceEOL /\s\+$/
     au InsertEnter * match WhitespaceEOL /\s\+\%#\@<!$/
     au InsertLeave * match WhitespaceEOL /\s\+$/
     au BufWinLeave * call clearmatches()
-augroup END
+aug END
 
 " Git auto-commit-message
 
@@ -568,14 +568,14 @@ func! <SID>GenCommitMsg()
     call term_start([&shell, &shellcmdflag, l:cmd], {'curwin': 1, 'exit_cb': l:Callback})
 endfunc
 
-augroup GitCommitMapping
+aug GitCommitMapping
     au!
     au FileType gitcommit nnoremap <buffer> <Leader>O :call <SID>GenCommitMsg()<CR>
-augroup END
+aug END
 
 " Special file types
 
-augroup SpecialFileTypes
+aug SpecialFileTypes
     au!
     " set as YAML
     au BufNewFile,BufReadPost *.{yaml,yml} set filetype=yaml
@@ -583,7 +583,7 @@ augroup SpecialFileTypes
     au FileType yaml setlocal ts=2 sts=2 sw=2 expandtab indentkeys-=0# indentkeys-=0} indentkeys-=0] indentkeys-=<:> indentkeys-=0-
     " don't show tabs in html/xml
     au FileType html,xml setlocal listchars-=tab:>.
-augroup END
+aug END
 
 command ToggleStripTrailingWhitespace :call ToggleStripTrailingWhitespace()
 " Enable the whitespace stripping by default
@@ -595,6 +595,12 @@ call ToggleStripTrailingWhitespace()
 " https://github.com/chrisbra/Colorizer/blob/master/doc/Colorizer.txt
 let g:colorizer_auto_filetype = 'css,html'   " Automatically highlight filetypes
 let g:colorizer_fgcontrast = 0   " Adjust the contrast (-1, 0, 1, 2). When -1 - fg and bg are the same.
+
+aug SafeSneak
+    au!
+    " Wait until Vim initialization is complete and check if plugin is loaded
+    autocmd VimEnter * if exists('g:loaded_sneak_plugin') | for k in split('f F t T') | exe 'map '.k.' <Plug>Sneak_'.k | endfor | endif
+aug END
 
 " Under Wayland use wl-copy to copy in system clipboard
 if !empty($WAYLAND_DISPLAY)
