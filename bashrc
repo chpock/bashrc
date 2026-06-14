@@ -472,6 +472,7 @@ if a:status == 0
 if filereadable(a:tmpfile) && getfsize(a:tmpfile) > 0
 let l:output = readfile(a:tmpfile)
 call appendbufline(a:orig_bufnr, 0, l:output)
+call win_execute(bufwinid(a:orig_bufnr), 'call cursor(1, 1)')
 endif
 endif
 call delete(a:tmpfile)
