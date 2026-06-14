@@ -57,7 +57,7 @@ tool: opencode functions
 https://raw.githubusercontent.com/chpock/bashrc/master/functions/opencode.sh
 $IAM_HOME/functions/opencode.sh
 has: opencode
-7916
+8151
 tool: edit bashrc
 https://raw.githubusercontent.com/chpock/bashrc/master/functions/bashrc.rc.sh
 $IAM_HOME/functions/bashrc.rc.sh

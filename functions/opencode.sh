@@ -48,6 +48,7 @@ __opencode_stop_server() {
     kill "$OPENCODE_PID"
     local MAX_WAIT_TIMEOUT=10 START_SECONDS="$SECONDS"
     local LAST_SECONDS="$START_SECONDS"
+    local HARD_KILL=0
     while true; do
         if ! __opencode_check_pid "$OPENCODE_PID"; then
             rm -f "$__OPENCODE_ADDRESS"
@@ -63,7 +64,13 @@ __opencode_stop_server() {
             _info "[$DURATION/$MAX_WAIT_TIMEOUT] Waiting for opencode to stop..."
         fi
         LAST_SECONDS="$CURRENT_SECONDS"
-        sleep 0.1
+        if [ "$DURATION" -ge 5 ] && [ "$HARD_KILL" -eq 0 ]; then
+            _info "Trying to hard-kill opencode process..."
+            kill -9 "$OPENCODE_PID"
+            HARD_KILL=1
+        else
+            sleep 0.1
+        fi
     done
 }
 
