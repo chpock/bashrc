@@ -2159,12 +2159,14 @@ bind '"\e[1;5C": forward-word'
 # E.g. function 'psa' uses 'ps'. Thus, alias 'ps' must be defined
 # before the function 'psa'.
 if _has rgrc; then
-        # esperanto fdisk findmnt free gcc getfacl getsebool id ifconfig \
-        # iptables irclog iwconfig last ldap lsattr lsblk lsmod lsof \
-        # lspci lsusb mount mvn netstat nmap ntpdate ping ping2 podman proftpd \
-        # ps pv semanage sensors showmount sockstat sql ss stat sysctl systemctl \
-        # tcpdump traceroute tune2fs ulimit uptime vmstat wdiff whois go iostat
-    for cmd in ant blkid curl cvs df dig diskutil dnf docker du kdig dummy
+    # esperanto fdisk findmnt free gcc getfacl getsebool id ifconfig \
+    # iptables irclog iwconfig last ldap lsattr lsblk lsmod lsof \
+    # lspci lsusb mount mvn netstat nmap ntpdate ping ping2 podman proftpd \
+    # ps pv semanage sensors showmount sockstat sql ss stat sysctl systemctl \
+    # tcpdump traceroute tune2fs ulimit uptime vmstat wdiff whois go iostat
+    #
+    # Don't include 'docker' here as we have dedicated function for docker.
+    for cmd in ant blkid curl cvs df dig diskutil dnf du kdig dummy
     do
         # Disable: This expands when defined, not when used. Consider escaping. [SC2139]
         # shellcheck disable=SC2139

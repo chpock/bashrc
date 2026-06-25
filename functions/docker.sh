@@ -38,7 +38,11 @@ docker() {
             done
             [ -n "$IS_DETACH" ] || set -- "$1" "--rm" "${@:2}"
         fi
-        command docker "$@"
+        if _has rgrc; then
+            rgrc docker "$@"
+        else
+            command docker "$@"
+        fi
     )
 }
 
@@ -52,6 +56,16 @@ docker() {
             ;;
         run)
             docker run -ti --entrypoint /bin/sh "$@" -c "$(__magic_ssh)"
+            ;;
+        unpack)
+            if [ -z "$1" ]; then
+                _err "Usage: ,docker unpack <image>"
+                return 1
+            fi
+            local CONTAINER_ID
+            CONTAINER_ID="$(command docker create "$1")"
+            command docker export "$CONTAINER_ID" | tar x
+            command docker rm "$CONTAINER_ID"
             ;;
         *)
             echo "Unknown cmd: '$CMD'"
@@ -73,14 +87,14 @@ __,docker() {
     if [ "$COMP_CWORD" -eq 1 ]; then
         # Disable: Prefer mapfile or read -a to split command output (or quote to avoid splitting). [SC2207]
         # shellcheck disable=SC2207
-        COMPREPLY=($(compgen -W "exec run" -- "$CUR"))
+        COMPREPLY=($(compgen -W "exec run unpack" -- "$CUR"))
         return
     fi
 
     local CMD="${COMP_WORDS[1]}"
     local VAR
 
-    if [ "$CMD" = "run" ]; then
+    if [ "$CMD" = "run" ] || [ "$CMD" = "unpack" ]; then
         # This is a hack when we complete tag name. By default, completion also breaks the line by ':'.
         # E.g. "zookeeper:3.8." will be as:
         # COMP_CWORD - 3

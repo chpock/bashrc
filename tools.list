@@ -12,7 +12,7 @@ tool: docker functions
 https://raw.githubusercontent.com/chpock/bashrc/master/functions/docker.sh
 $IAM_HOME/functions/docker.sh
 has: docker
-4471
+4936
 tool: AWS CLI functions
 https://raw.githubusercontent.com/chpock/bashrc/master/functions/awscli.sh
 $IAM_HOME/functions/awscli.sh

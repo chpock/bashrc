@@ -515,8 +515,8 @@ EOF
 
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
-LOCAL_TOOLS_FILE_HASH=262D22B1
-BASHRC_FILE_HASH=042EF8B6
+LOCAL_TOOLS_FILE_HASH=B32D22B7
+BASHRC_FILE_HASH=09DA0DAF
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -1826,9 +1826,9 @@ SwapFree)  _swapFree="$b";;
 esac
 done < /proc/meminfo
 MEM_TOTAL=$(( _memTotal / 1024 ))
+MEM_FREE=$(( (_memFree + _buffers + _cached) / 1024 ))
 EOF
 cat <<'EOF' >> "$IAM_HOME/bashrc"
-MEM_FREE=$(( (_memFree + _buffers + _cached) / 1024 ))
 SWAP_TOTAL=$(( _swapTotal / 1024 ))
 SWAP_FREE=$(( _swapFree / 1024 ))
 elif _has vm_stat; then
@@ -2073,7 +2073,7 @@ bind '"\e[2~": quoted-insert'
 bind '"\e[1;5D": backward-word'
 bind '"\e[1;5C": forward-word'
 if _has rgrc; then
-for cmd in ant blkid curl cvs df dig diskutil dnf docker du kdig dummy
+for cmd in ant blkid curl cvs df dig diskutil dnf du kdig dummy
 do
 _hasnot "$cmd" || alias "$cmd"="rgrc $cmd"
 done
