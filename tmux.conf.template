@@ -19,7 +19,7 @@ set -g pane-base-index 1
 set -s escape-time 50
 3.3+:set -g allow-passthrough on
 set -g history-limit 1000000
-set -g automatic-rename on
+set -g automatic-rename off
 set -g renumber-windows on
 set -g set-titles on
 set -g set-titles-string '#( [ -f "$IAM_HOME/hostname" ] && cat "$IAM_HOME/hostname" || hostname -s ) > #S'
@@ -86,10 +86,6 @@ set -g @ind_t_copy   ' COPY '
 set -g @ind_s_copy   'bg=yellow,fg=black'
 set -g @ind_t_none   ' TMUX '
 set -g @ind_s_none   'bg=cyan,fg=black'
-set -g @automatic-rename-append-format "#[nobold,fg=white]:#[fg=yellow]"
-set -g automatic-rename-format "#{?pane_in_mode,[tmux],#{pane_current_command}#{?#{!=:#{@automatic-rename-append},},#{@automatic-rename-append-format}#{@automatic-rename-append},}}#{?pane_dead,[dead],}"
-set-hook -ug window-renamed
-set-hook -ag window-renamed 'run "$IAM_HOME/tools/bin/tmux-helper update-automatic-rename-append -w \"#{hook_window}\" 2>/dev/null"'
 set -g clock-mode-colour colour135
 set -g mode-style 'fg=colour196,bg=colour238,bold'
 set -g pane-border-style 'bg=colour235,fg=colour238'

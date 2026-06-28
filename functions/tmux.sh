@@ -108,7 +108,7 @@ _has tmux || return
                         if [ -z "$restore_full_session" ]; then
                             echo "[TMUX] restore window '$window_name' with path '$current_path' (session: $session_name)"
                         fi
-                        if ! window_id="$(tmux new-window -d -t "$session_id" -n "$window_name" -c "$current_path" -P -F '#{window_id}')"; then
+                        if ! window_id="$(tmux new-window -d -t "$session_id" -c "$current_path" -P -F '#{window_id}')"; then
                             _warn "could not restore the window '%s' with current path '%s'" "$window_name" "$current_path"
                             continue
                         fi
