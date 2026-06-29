@@ -595,6 +595,16 @@ _is() {
         in_docker)   _is in_container && [ -f /.dockerenv ] || R=1 ;;
         sudo)        [ -n "$SUDO_USER" ] || R=1 ;;
         tmux)        [ -n "$TMUX" ] || R=1 ;;
+        tmux_3_7)
+            local TMUX_VERSION
+            # Here we're not just taking the last word from the output of command `tmux -V`,
+            # but also stripping out everything that isn't a digit or a dot.
+            # That way it'll be easier, because the tmux developers are from Mars and
+            # not exactly sane. They like to put various letters into the version string.
+            # Thank God they don't put smileys or emojis in there.
+            TMUX_VERSION="$(command tmux -V 2>/dev/null | sed 's/[^[:digit:].]//g')"
+            [ -n "$TMUX_VERSION" ] && _vercomp "$TMUX_VERSION" '>=' 3.7 || R=1
+            ;;
         # Clouds
         aws)         _is cloud && curl -s -I http://169.254.169.254 | grep -qF 'Server: EC2ws' || R=1 ;;
         aws_metadata_available)
@@ -2897,8 +2907,19 @@ _ps1_show_status() {
         # #{pane_dead} doesn't work in tmux 3.0a. Status pane is not marked as dead.
         # However, #{pane_pid} works everywhere. Empty pane has 0 pane_pid.
         _PS1_TMUX_CURRENT_STATUS="$(command tmux list-panes -t "$_PS1_TMUX_CURRENT_WINDOW" -F '#{pane_pid} #{pane_id}' | grep '^0 ' | awk '{print $2}' | tail -n 1)"
-        # no panes, create one
-        [ -n "$_PS1_TMUX_CURRENT_STATUS" ] || _PS1_TMUX_CURRENT_STATUS="$(command tmux split-window -d -l 1 -v -t "$TMUX_PANE" -P -F '#{pane_id}' '')"
+        # there are no panes, let's create one
+        #
+        # Before tmux 3.7, we had to create empty panes by passing an empty command. In tmux 3.7,
+        # the tmux developers had the brilliant idea (sarcasm) of breaking backward compatibility
+        # and forbidding empty panes created with an empty command. Now we have to explicitly pass
+        # the -E flag, which of course is not compatible with older versions of tmux.
+        # Now we have to use this dirty hack: use an empty command for tmux 3.6 and earlier,
+        # but pass -E for tmux 3.7 and later. Many thanks to those developers. (sarcasm again)
+        if [ -z "$_PS1_TMUX_CURRENT_STATUS" ]; then
+            local TMUX_HACK=''
+            _isnot tmux_3_7 || TMUX_HACK='-E'
+            _PS1_TMUX_CURRENT_STATUS="$(command tmux split-window -d -l 1 -v -t "$TMUX_PANE" -P -F '#{pane_id}' "$TMUX_HACK")"
+        fi
         #command tmux select-pane -t "$_PS1_TMUX_CURRENT_STATUS" -P 'bg=colour236'
         #command tmux select-pane -t "$TMUX_PANE"
         # defaults are:

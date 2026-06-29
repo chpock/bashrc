@@ -516,7 +516,7 @@ EOF
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
 LOCAL_TOOLS_FILE_HASH=089D22BC
-BASHRC_FILE_HASH=09DA0DAF
+BASHRC_FILE_HASH=8424A798
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -975,6 +975,11 @@ fi
 in_docker)   _is in_container && [ -f /.dockerenv ] || R=1 ;;
 sudo)        [ -n "$SUDO_USER" ] || R=1 ;;
 tmux)        [ -n "$TMUX" ] || R=1 ;;
+tmux_3_7)
+local TMUX_VERSION
+TMUX_VERSION="$(command tmux -V 2>/dev/null | sed 's/[^[:digit:].]//g')"
+[ -n "$TMUX_VERSION" ] && _vercomp "$TMUX_VERSION" '>=' 3.7 || R=1
+;;
 aws)         _is cloud && curl -s -I http://169.254.169.254 | grep -qF 'Server: EC2ws' || R=1 ;;
 aws_metadata_available)
 _is aws && TMPVAL="$(_aws_metadata instance-id)" && [ -n "$TMPVAL" ] || R=1
@@ -1827,9 +1832,9 @@ esac
 done < /proc/meminfo
 MEM_TOTAL=$(( _memTotal / 1024 ))
 MEM_FREE=$(( (_memFree + _buffers + _cached) / 1024 ))
+SWAP_TOTAL=$(( _swapTotal / 1024 ))
 EOF
 cat <<'EOF' >> "$IAM_HOME/bashrc"
-SWAP_TOTAL=$(( _swapTotal / 1024 ))
 SWAP_FREE=$(( _swapFree / 1024 ))
 elif _has vm_stat; then
 read -r SWAP_TOTAL SWAP_FREE <<< "$(sysctl vm.swapusage | awk '{ print $4 "\n" $10 }')"
@@ -2583,7 +2588,11 @@ fi
 [ -n "$_PS1_TMUX_CURRENT_WINDOW" ] || _PS1_TMUX_CURRENT_WINDOW="$(command tmux display-message -p -t "$TMUX_PANE" '#{window_id}')"
 if [ -z "$_PS1_TMUX_CURRENT_STATUS" ]; then
 _PS1_TMUX_CURRENT_STATUS="$(command tmux list-panes -t "$_PS1_TMUX_CURRENT_WINDOW" -F '#{pane_pid} #{pane_id}' | grep '^0 ' | awk '{print $2}' | tail -n 1)"
-[ -n "$_PS1_TMUX_CURRENT_STATUS" ] || _PS1_TMUX_CURRENT_STATUS="$(command tmux split-window -d -l 1 -v -t "$TMUX_PANE" -P -F '#{pane_id}' '')"
+if [ -z "$_PS1_TMUX_CURRENT_STATUS" ]; then
+local TMUX_HACK=''
+_isnot tmux_3_7 || TMUX_HACK='-E'
+_PS1_TMUX_CURRENT_STATUS="$(command tmux split-window -d -l 1 -v -t "$TMUX_PANE" -P -F '#{pane_id}' "$TMUX_HACK")"
+fi
 command tmux set -p -t "$TMUX_PANE" pane-border-style 'bg=default,fg=colour238'
 command tmux set -p -t "$TMUX_PANE" pane-active-border-style 'bg=default,fg=colour238'
 command tmux set -p -t "$_PS1_TMUX_CURRENT_STATUS" pane-border-style 'bg=default,fg=colour238'
