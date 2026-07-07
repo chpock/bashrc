@@ -2,7 +2,7 @@ tool: install functions
 https://raw.githubusercontent.com/chpock/bashrc/master/functions/install.sh
 $IAM_HOME/functions/install.sh
 important: true
-#E5CF617C
+#4227617E
 tool: git functions
 https://raw.githubusercontent.com/chpock/bashrc/master/functions/git.sh
 $IAM_HOME/functions/git.sh

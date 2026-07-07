@@ -2,7 +2,7 @@
 
 __INSTALL_VERSION="
   moar          1.31.8 auto
-  rgrc          0.6.12 auto
+  rgrc          0.6.14 auto
   shellcheck    0.10.0
   awscli:aws    2.24.26
   kubectl       1.32.3
