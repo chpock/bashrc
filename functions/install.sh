@@ -3,6 +3,7 @@
 __INSTALL_VERSION="
   moar          1.31.8 auto
   rgrc          0.6.14 auto
+  flyline:libflyline.so 1.3.0  auto
   shellcheck    0.10.0
   awscli:aws    2.24.26
   kubectl       1.32.3
@@ -52,6 +53,23 @@ __INSTALL_VERSION="
   rancher       2.14.1
   diffyml       1.6.1
 "
+
+__install_flyline() {
+    local VERSION="$1" EXECUTABLE="$2"
+
+    if [ "$VERSION" = "-check" ]; then
+        strings "$EXECUTABLE" | grep -Po 'FLYLINE_VERSION\K[0-9.]+'
+        return 0
+    elif [ "$VERSION" = "-latest" ]; then
+        __install_get_latest_github "HalFrgrd/flyline"
+        return 0
+    fi
+
+    local FORMAT URL="https://github.com/HalFrgrd/flyline/releases/download/v${VERSION}/libflyline-v${VERSION}-"
+    __install_make_url "
+        linux-x64   x86_64-unknown-linux-gnu.tar.gz
+    " && __install_download && __install_unpack &&  __install_bin "libflyline.so.${VERSION}" || return $?
+}
 
 __install_bazelisk() {
     local VERSION="$1" EXECUTABLE="$2"
