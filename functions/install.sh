@@ -1190,6 +1190,20 @@ _is_install_available() {
     return 1
 }
 
+_install_get_tool_exe() {
+    local DISABLED TOOL VERSION EXECUTABLE V=""
+    if [ "$1" = "-v" ]; then
+        V="$2"
+        shift 2
+    fi
+    while read -r DISABLED TOOL EXECUTABLE VERSION; do
+        [ "$TOOL" = "$1" ] && break || EXECUTABLE=''
+    done < <(echo "$__INSTALL_VERSION_FILTERED")
+    [ -z "$EXECUTABLE" ] || EXECUTABLE="$IAM_HOME/tools/bin/$EXECUTABLE"
+    [ -x "$EXECUTABLE" ] || EXECUTABLE=''
+    [ -n "$V" ] && printf -v "$V" '%s' "$EXECUTABLE" || echo "$EXECUTABLE"
+}
+
 ,install() {
 
     local BY_EXECUTABLE=""

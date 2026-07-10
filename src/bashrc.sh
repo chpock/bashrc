@@ -3470,6 +3470,12 @@ if _isnot tmux && _isnot in-container; then
     ! _has_function __gpgconf_validate || __gpgconf_validate
 fi
 
+if _isnot in-container && _has_function _install_get_tool_exe; then
+    _install_get_tool_exe -v FLYLINE_LIB flyline
+    [ -z "$FLYLINE_LIB" ] || enable -f "$FLYLINE_LIB" flyline
+    unset FLYLINE_LIB
+fi
+
 if _isnot tmux; then
 
     if _is wsl; then

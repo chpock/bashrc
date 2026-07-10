@@ -515,8 +515,8 @@ EOF
 
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
-LOCAL_TOOLS_FILE_HASH=FECD2292
-BASHRC_FILE_HASH=8424A798
+LOCAL_TOOLS_FILE_HASH=4DE822AA
+BASHRC_FILE_HASH=300EE97E
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -1833,10 +1833,10 @@ done < /proc/meminfo
 MEM_TOTAL=$(( _memTotal / 1024 ))
 MEM_FREE=$(( (_memFree + _buffers + _cached) / 1024 ))
 SWAP_TOTAL=$(( _swapTotal / 1024 ))
-EOF
-cat <<'EOF' >> "$IAM_HOME/bashrc"
 SWAP_FREE=$(( _swapFree / 1024 ))
 elif _has vm_stat; then
+EOF
+cat <<'EOF' >> "$IAM_HOME/bashrc"
 read -r SWAP_TOTAL SWAP_FREE <<< "$(sysctl vm.swapusage | awk '{ print $4 "\n" $10 }')"
 SWAP_TOTAL="${SWAP_TOTAL%%.*}"
 SWAP_FREE="${SWAP_FREE%%.*}"
@@ -2966,6 +2966,11 @@ chmod +x "$IAM_HOME/tools/bin/geturl"
 fi
 if _isnot tmux && _isnot in-container; then
 ! _has_function __gpgconf_validate || __gpgconf_validate
+fi
+if _isnot in-container && _has_function _install_get_tool_exe; then
+_install_get_tool_exe -v FLYLINE_LIB flyline
+[ -z "$FLYLINE_LIB" ] || enable -f "$FLYLINE_LIB" flyline
+unset FLYLINE_LIB
 fi
 if _isnot tmux; then
 if _is wsl; then
