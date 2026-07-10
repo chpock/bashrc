@@ -4,6 +4,7 @@ __INSTALL_VERSION="
   moar          1.31.8 auto
   rgrc          0.6.14 auto
   flyline:libflyline.so 1.3.0  auto
+  flycomp       1.1.2  auto
   shellcheck    0.10.0
   awscli:aws    2.24.26
   kubectl       1.32.3
@@ -53,6 +54,24 @@ __INSTALL_VERSION="
   rancher       2.14.1
   diffyml       1.6.1
 "
+
+__install_flycomp() {
+    local VERSION="$1" EXECUTABLE="$2"
+
+    if [ "$VERSION" = "-check" ]; then
+        __install_check_version "$EXECUTABLE" --version \
+            | awk '{print $3}'
+        return 0
+    elif [ "$VERSION" = "-latest" ]; then
+        __install_get_latest_github "HalFrgrd/flycomp"
+        return 0
+    fi
+
+    local FORMAT URL="https://github.com/HalFrgrd/flycomp/releases/download/v${VERSION}/flycomp-v${VERSION}-"
+    __install_make_url "
+        linux-x64   x86_64-unknown-linux-gnu.tar.gz
+    " && __install_download && __install_unpack &&  __install_bin || return $?
+}
 
 __install_flyline() {
     local VERSION="$1" EXECUTABLE="$2"
