@@ -516,7 +516,7 @@ EOF
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
 LOCAL_TOOLS_FILE_HASH=6AF722C0
-BASHRC_FILE_HASH=300EE97E
+BASHRC_FILE_HASH=9A83B221
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -1835,13 +1835,13 @@ MEM_FREE=$(( (_memFree + _buffers + _cached) / 1024 ))
 SWAP_TOTAL=$(( _swapTotal / 1024 ))
 SWAP_FREE=$(( _swapFree / 1024 ))
 elif _has vm_stat; then
-EOF
-cat <<'EOF' >> "$IAM_HOME/bashrc"
 read -r SWAP_TOTAL SWAP_FREE <<< "$(sysctl vm.swapusage | awk '{ print $4 "\n" $10 }')"
 SWAP_TOTAL="${SWAP_TOTAL%%.*}"
 SWAP_FREE="${SWAP_FREE%%.*}"
 MEM_TOTAL=$(sysctl hw.memsize | awk '{ print $NF }')
 MEM_TOTAL=$(( MEM_TOTAL / 1024 / 1024 ))
+EOF
+cat <<'EOF' >> "$IAM_HOME/bashrc"
 MEM_FREE=0
 while IFS=$':\r\n' read -r a b; do
 if [ "$a" = "Pages free" ] || [ "$a" = "Pages inactive" ] || [ "$a" = "Pages speculative" ]; then
@@ -2971,6 +2971,15 @@ if _isnot in-container && _has_function _install_get_tool_exe; then
 _install_get_tool_exe -v FLYLINE_LIB flyline
 [ -z "$FLYLINE_LIB" ] || enable -f "$FLYLINE_LIB" flyline
 unset FLYLINE_LIB
+flyline set-cursor --backend flyline --style "#52ad70" --effect fade --effect-easing in-out-sine --interpolate-easing out-elastic --interpolate none
+flyline set-style inline-suggestion="black on black"
+flyline mouse --mode disabled
+if _has flycomp; then
+FLYCOMP_DIR="$IAM_HOME/tools/bash_completion/flycomp"
+mkdir -p "$FLYCOMP_DIR"
+flyline suggestions --flycomp-output "$FLYCOMP_DIR" --use-flycomp true --auto-suggest true --sort-order mtime
+unset FLYCOMP_DIR
+fi
 fi
 if _isnot tmux; then
 if _is wsl; then
