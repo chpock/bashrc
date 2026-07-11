@@ -3483,6 +3483,9 @@ if _isnot in-container && _has_function _install_get_tool_exe; then
     # Disable mouse
     flyline mouse --mode disabled
 
+    # Don't use fuzzy match for suggestions
+    flyline suggestions set-fuzzy-mode none
+
     if _has flycomp; then
         FLYCOMP_DIR="$IAM_HOME/tools/bash_completion/flycomp"
         mkdir -p "$FLYCOMP_DIR"

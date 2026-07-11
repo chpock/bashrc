@@ -516,7 +516,7 @@ EOF
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
 LOCAL_TOOLS_FILE_HASH=6AF722C0
-BASHRC_FILE_HASH=9A83B221
+BASHRC_FILE_HASH=06F5D0D3
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -1840,9 +1840,9 @@ SWAP_TOTAL="${SWAP_TOTAL%%.*}"
 SWAP_FREE="${SWAP_FREE%%.*}"
 MEM_TOTAL=$(sysctl hw.memsize | awk '{ print $NF }')
 MEM_TOTAL=$(( MEM_TOTAL / 1024 / 1024 ))
+MEM_FREE=0
 EOF
 cat <<'EOF' >> "$IAM_HOME/bashrc"
-MEM_FREE=0
 while IFS=$':\r\n' read -r a b; do
 if [ "$a" = "Pages free" ] || [ "$a" = "Pages inactive" ] || [ "$a" = "Pages speculative" ]; then
 b="${b// /}"
@@ -2974,6 +2974,7 @@ unset FLYLINE_LIB
 flyline set-cursor --backend flyline --style "#52ad70" --effect fade --effect-easing in-out-sine --interpolate-easing out-elastic --interpolate none
 flyline set-style inline-suggestion="black on black"
 flyline mouse --mode disabled
+flyline suggestions set-fuzzy-mode none
 if _has flycomp; then
 FLYCOMP_DIR="$IAM_HOME/tools/bash_completion/flycomp"
 mkdir -p "$FLYCOMP_DIR"
