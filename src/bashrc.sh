@@ -3472,26 +3472,28 @@ fi
 
 if _isnot in-container && _has_function _install_get_tool_exe; then
     _install_get_tool_exe -v FLYLINE_LIB flyline
-    [ -z "$FLYLINE_LIB" ] || enable -f "$FLYLINE_LIB" flyline
-    unset FLYLINE_LIB
+    if [ -n "$FLYLINE_LIB" ]; then
+        enable -f "$FLYLINE_LIB" flyline
 
-    flyline set-cursor --backend flyline --style "#52ad70" --effect fade --effect-easing in-out-sine --interpolate-easing out-elastic --interpolate none
+        flyline set-cursor --backend flyline --style "#52ad70" --effect fade --effect-easing in-out-sine --interpolate-easing out-elastic --interpolate none
 
-    # Remove `#idx=42462 7sec` from inline suggestions (make this as black on black)
-    flyline set-style inline-suggestion="black on black"
+        # Remove `#idx=42462 7sec` from inline suggestions (make this as black on black)
+        flyline set-style inline-suggestion="black on black"
 
-    # Disable mouse
-    flyline mouse --mode disabled
+        # Disable mouse
+        flyline mouse --mode disabled
 
-    # Don't use fuzzy match for suggestions
-    flyline suggestions set-fuzzy-mode none
+        # Don't use fuzzy match for suggestions
+        flyline suggestions set-fuzzy-mode none
 
-    if _has flycomp; then
-        FLYCOMP_DIR="$IAM_HOME/tools/bash_completion/flycomp"
-        mkdir -p "$FLYCOMP_DIR"
-        flyline suggestions --flycomp-output "$FLYCOMP_DIR" --use-flycomp true --auto-suggest true --sort-order mtime
-        unset FLYCOMP_DIR
+        if _has flycomp; then
+            FLYCOMP_DIR="$IAM_HOME/tools/bash_completion/flycomp"
+            mkdir -p "$FLYCOMP_DIR"
+            flyline suggestions --flycomp-output "$FLYCOMP_DIR" --use-flycomp true --auto-suggest true --sort-order mtime
+            unset FLYCOMP_DIR
+        fi
     fi
+    unset FLYLINE_LIB
 fi
 
 if _isnot tmux; then
