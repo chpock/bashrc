@@ -52,7 +52,7 @@ tool: k9s function
 https://raw.githubusercontent.com/chpock/bashrc/master/functions/k9s.sh
 $IAM_HOME/functions/k9s.sh
 has: k9s
-2345
+4373
 tool: opencode functions
 https://raw.githubusercontent.com/chpock/bashrc/master/functions/opencode.sh
 $IAM_HOME/functions/opencode.sh
