@@ -151,7 +151,7 @@ case "$KUBE_CONTEXT" in
     spark-fab-*-nbprod)
         DEBUG_IMAGE="ecr.techdev.ormcodigital.com/$SPARK_FAB_DEBUG_IMAGE"
         ;;
-    sparkfab-*-eks)
+    sparkfab-*-eks|eks/sparkfab-*-eks)
         DEBUG_IMAGE="448049824165.dkr.ecr.us-east-1.amazonaws.com/$SPARK_FAB_DEBUG_IMAGE"
         ;;
     *)

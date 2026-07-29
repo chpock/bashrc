@@ -11,6 +11,136 @@ __OPENCODE_ADDRESS="$__OPENCODE_ROOT/address"
 __OPENCODE_PID_FILE="$__OPENCODE_ROOT/pid"
 __OPENCODE_SIZE_FILE="$__OPENCODE_ROOT/size"
 
+__OPENCODE_AUTH_FILE="${XDG_DATA_HOME:-$HOME/.local/share}/opencode/auth.json"
+__OPENCODE_ACCOUNTS_FILE="${XDG_DATA_HOME:-$HOME/.local/share}/opencode/accounts.json"
+
+,opencode() {
+    if [ -z "$1" ]; then
+        _info "Usage: ,opencode account-set|account-refresh <provider> <account_id>"
+        return
+    fi
+    case "$1" in
+        account-set-active)
+            shift
+            _,opencode_account_set_active "$@" || return $?
+            ;;
+        account-rename-active)
+            shift
+            _,opencode_account_rename_active "$@" || return $?
+            ;;
+        *)
+            _err "Unknown command '%s'" "$1"
+            return 1
+            ;;
+    esac
+}
+
+_,opencode_account_set_active() {
+    if [ -z "$1" ]; then
+        _info "Usage: ,opencode account-set-active <provider> <account_id>"
+        return 0
+    fi
+    __opencode_ensure_accounts_file || return 1
+}
+
+_,opencode_account_rename_active() {
+    if [ -z "$1" ]; then
+        _info "Usage: ,opencode account-rename-active <provider> [<new_account_id>]"
+        return 0
+    fi
+    local PROVIDER="$1"
+    __opencode_ensure_accounts_file || return 1
+    if ! jq -e --arg key "$PROVIDER" 'has($key)' "$__OPENCODE_ACCOUNTS_FILE" >/dev/null; then
+        _err "there is no provider '%s', known provider(s): %s" \
+            "$PROVIDER" "$(__opencode_get_providers | sed 's/ /, /g')"
+    fi
+}
+
+__opencode_ensure_accounts_file() {
+    if [ ! -r "$__OPENCODE_AUTH_FILE" ]; then
+        if [ -z "$__OPENCODE_SILENT" ]; then
+            _err "could not find or read opencode auth file: %s" "$__OPENCODE_AUTH_FILE"
+        fi
+        return 1
+    fi
+    if [ ! -e "$__OPENCODE_ACCOUNTS_FILE" ]; then
+        jq 'with_entries(
+            .value = [
+                {
+                    accountId: "default",
+                    isActive: true,
+                }
+            ]
+        )' "$__OPENCODE_AUTH_FILE" > "$__OPENCODE_ACCOUNTS_FILE"
+        return 0
+    fi
+    local ACTUAL_PROVIDERS CURRENT_PROVIDERS TEMP_ACCOUNTS_FILE
+    # keys - sorts keys so we can just compare lists as strings
+    ACTUAL_PROVIDERS="$(__opencode_get_providers)"
+    CURRENT_PROVIDERS="$(jq -r 'keys | join(" ")' "$__OPENCODE_AUTH_FILE")"
+    [ "$ACTUAL_PROVIDERS" != "$CURRENT_PROVIDERS" ] || return 0
+    # add missing providers
+    TEMP_ACCOUNTS_FILE="$(mktemp)"
+    if ! jq -s '
+            .[0] as $source
+            | .[1] as $result
+            | (
+                $source
+                | with_entries(
+                    .value = [
+                        {
+                            accountId: "default",
+                            isActive: true
+                        }
+                    ]
+                    )
+                ) + $result
+        ' "$__OPENCODE_AUTH_FILE" "$__OPENCODE_ACCOUNTS_FILE" > "$TEMP_ACCOUNTS_FILE"
+    then
+        rm -f "$TEMP_ACCOUNTS_FILE"
+        if [ -z "$__OPENCODE_SILENT" ]; then
+            _err "something wrong happened while adding new providers to the account file"
+        fi
+        return 1
+    fi
+    mv -f "$TEMP_ACCOUNTS_FILE" "$__OPENCODE_ACCOUNTS_FILE"
+}
+
+__opencode_get_providers() {
+    jq -r 'keys | join(" ")' "$__OPENCODE_ACCOUNTS_FILE"
+}
+
+__,opencode_complete() {
+
+    local __VAR
+
+    COMPREPLY=()
+
+    if [ "$COMP_CWORD" -lt 2 ]; then
+        # Disable: Prefer mapfile or read -a to split command output (or quote to avoid splitting). [SC2207]
+        # shellcheck disable=SC2207
+        COMPREPLY=($(compgen -W "account-set-active account-rename-active" -- "${COMP_WORDS[1]}"))
+        return
+    fi
+
+    # case "${COMP_WORDS[1]}" in
+    #     update-kubeconfig)
+    #         if ! __VAR="$(rancher clusters ls --format '{{.Cluster.Name}}' 2>&1)"; then
+    #             echo
+    #             cprintf -n '~r~ERROR~K~: ~d~%s' "$__VAR"
+    #             COMPREPLY=('~=~=~=~=~=~' '=~=~=~=~=~=')
+    #         else
+    #             # Disable: Prefer mapfile or read -a to split command output (or quote to avoid splitting). [SC2207]
+    #             # shellcheck disable=SC2207
+    #             COMPREPLY=($(compgen -W "$__VAR" -- "${COMP_WORDS[2]}"))
+    #         fi
+    #     ;;
+    # esac
+
+}
+
+complete -F __,opencode_complete ,opencode
+
 __opencode_check_pid() {
     local OPENCODE_PID="$1"
     if [ -z "$OPENCODE_PID" ] || ! kill -0 "$OPENCODE_PID" >/dev/null 2>&1; then
