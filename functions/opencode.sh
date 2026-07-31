@@ -16,7 +16,7 @@ __OPENCODE_ACCOUNTS_FILE="${XDG_DATA_HOME:-$HOME/.local/share}/opencode/accounts
 
 ,opencode() {
     if [ -z "$1" ]; then
-        _info "Usage: ,opencode account-set|account-refresh <provider> <account_id>"
+        _info "Usage: ,opencode account-set-active|account-rename-active|account-save-active-as <...parameters...>"
         return
     fi
     case "$1" in
@@ -28,6 +28,10 @@ __OPENCODE_ACCOUNTS_FILE="${XDG_DATA_HOME:-$HOME/.local/share}/opencode/accounts
             shift
             _,opencode_account_rename_active "$@" || return $?
             ;;
+        account-save-active-as)
+            shift
+            _,opencode_save_active_as "$@" || return $?
+            ;;
         *)
             _err "Unknown command '%s'" "$1"
             return 1
@@ -36,33 +40,216 @@ __OPENCODE_ACCOUNTS_FILE="${XDG_DATA_HOME:-$HOME/.local/share}/opencode/accounts
 }
 
 _,opencode_account_set_active() {
-    if [ -z "$1" ]; then
+    local PROVIDER="$1" ACCOUNT_ID="$2" TEMP_ACCOUNTS_FILE TEMP_AUTH_FILE
+
+    if [ -z "$PROVIDER" ] || [ -z "$ACCOUNT_ID" ]; then
         _info "Usage: ,opencode account-set-active <provider> <account_id>"
         return 0
     fi
-    __opencode_ensure_accounts_file || return 1
+
+    __opencode_validate_account_provider "$PROVIDER" || return 1
+
+    if ! __opencode_is_account_exist "$PROVIDER" "$ACCOUNT_ID"; then
+        _err "could not find accountId ~K~'~g~%s~K~'~d~ for provider ~c~%s" "$ACCOUNT_ID" "$PROVIDER"
+        return 1
+    fi
+
+    if jq -e --arg provider "$PROVIDER" --arg account_id "$ACCOUNT_ID" \
+        'first(.[$provider][]? | select(.accountId == $account_id)) | .isActive == true' \
+        "$__OPENCODE_ACCOUNTS_FILE" >/dev/null
+    then
+        _err "accountId ~K~'~g~%s~K~'~d~ for provider ~c~%s~d~ is already active" "$ACCOUNT_ID" "$PROVIDER"
+        return 1
+    fi
+
+    TEMP_ACCOUNTS_FILE="$(mktemp)"
+    chmod 0600 "$TEMP_ACCOUNTS_FILE"
+    TEMP_AUTH_FILE="$(mktemp)"
+    chmod 0600 "$TEMP_AUTH_FILE"
+
+    if ! jq --arg provider "$PROVIDER" --arg account_id "$ACCOUNT_ID" \
+        --slurpfile accounts_file "$__OPENCODE_ACCOUNTS_FILE" \
+        '
+            .[$provider] = first(
+                $accounts_file[0][$provider][]
+                | select(.accountId == $account_id)
+                | .data
+            )
+        ' "$__OPENCODE_AUTH_FILE" > "$TEMP_AUTH_FILE"
+    then
+        rm -f "$TEMP_AUTH_FILE"
+        _err "something bad happened while modifying the auth file: ~m~%s" "$__OPENCODE_AUTH_FILE"
+        return 1
+    fi
+
+    if ! jq --arg provider "$PROVIDER" --arg account_id "$ACCOUNT_ID" \
+        --slurpfile auth_file "$__OPENCODE_AUTH_FILE" \
+        '
+            .[$provider] |= map(
+                if .accountId == $account_id then
+                    .isActive = true
+                    | del(.data)
+                elif .isActive == true then
+                    .isActive = false
+                    | .data = $auth_file[0][$provider]
+                else
+                    .
+                end
+            )
+        ' "$__OPENCODE_ACCOUNTS_FILE" > "$TEMP_ACCOUNTS_FILE"
+    then
+        rm -f "$TEMP_ACCOUNTS_FILE" "$TEMP_AUTH_FILE"
+        _err "something bad happened while modifying the accounts file: ~m~%s" "$__OPENCODE_ACCOUNTS_FILE"
+        return 1
+    fi
+
+    mv -f "$TEMP_AUTH_FILE" "$__OPENCODE_AUTH_FILE"
+    mv -f "$TEMP_ACCOUNTS_FILE" "$__OPENCODE_ACCOUNTS_FILE"
+
+    _,opencode_account_rename_active "$PROVIDER"
+}
+
+_,opencode_save_active_as() {
+    local PROVIDER="$1" NEW_NAME="$2" TEMP_ACCOUNTS_FILE
+
+    if [ -z "$PROVIDER" ] || [ -z "$NEW_NAME" ]; then
+        _info "Usage: ,opencode account-save-active-as <provider> <new_account_id>"
+        return 0
+    fi
+
+    __opencode_validate_account_provider "$PROVIDER" || return 1
+
+    if __opencode_is_account_exist "$PROVIDER" "$NEW_NAME"; then
+        _err "accountId ~K~'~g~%s~K~'~d~ already exists for provider ~c~%s" "$NEW_NAME" "$PROVIDER"
+        return 1
+    fi
+
+    TEMP_ACCOUNTS_FILE="$(mktemp)"
+    chmod 0600 "$TEMP_ACCOUNTS_FILE"
+
+    if ! jq --arg provider "$PROVIDER" --arg account_id "$NEW_NAME" \
+        --slurpfile auth_file "$__OPENCODE_AUTH_FILE" \
+        '
+            .[$provider] += [
+                {
+                    accountId: $account_id,
+                    isActive: false,
+                    data: $auth_file[0][$provider]
+                }
+            ]
+        ' \
+        "$__OPENCODE_ACCOUNTS_FILE" > "$TEMP_ACCOUNTS_FILE"
+    then
+        rm -f "$TEMP_ACCOUNTS_FILE"
+        _err "something was wrong when adding current credentials under other account id"
+        return 1
+    fi
+
+    mv -f "$TEMP_ACCOUNTS_FILE" "$__OPENCODE_ACCOUNTS_FILE"
+    _info "active account for provider ~c~%s~d~ was stored under account id ~g~%s~d~. You can now change credentials in auth file: ~m~%s" \
+        "$PROVIDER" "$NEW_NAME" "$__OPENCODE_AUTH_FILE"
 }
 
 _,opencode_account_rename_active() {
+    local PROVIDER="$1" NEW_NAME="$2" TEMP_ACCOUNTS_FILE
+
     if [ -z "$1" ]; then
         _info "Usage: ,opencode account-rename-active <provider> [<new_account_id>]"
         return 0
     fi
-    local PROVIDER="$1"
-    __opencode_ensure_accounts_file || return 1
-    if ! jq -e --arg key "$PROVIDER" 'has($key)' "$__OPENCODE_ACCOUNTS_FILE" >/dev/null; then
-        _err "there is no provider '%s', known provider(s): %s" \
-            "$PROVIDER" "$(__opencode_get_providers | sed 's/ /, /g')"
+
+    __opencode_validate_account_provider "$PROVIDER" || return 1
+
+    if __opencode_is_account_exist "$PROVIDER" "$NEW_NAME"; then
+        _err "accountId ~K~'~g~%s~K~'~d~ already exists for provider ~c~%s" "$NEW_NAME" "$PROVIDER"
+        return 1
     fi
+
+    if [ -n "$NEW_NAME" ]; then
+        TEMP_ACCOUNTS_FILE="$(mktemp)"
+        chmod 0600 "$TEMP_ACCOUNTS_FILE"
+        if ! jq --arg provider "$PROVIDER" --arg account_id "$NEW_NAME" \
+            '(.[$provider][] | select(.isActive == true) | .accountId) = $account_id' \
+            "$__OPENCODE_ACCOUNTS_FILE" > "$TEMP_ACCOUNTS_FILE"
+        then
+            rm -f "$TEMP_ACCOUNTS_FILE"
+            _err "failed to change accountId"
+            return 1
+        fi
+        mv -f "$TEMP_ACCOUNTS_FILE" "$__OPENCODE_ACCOUNTS_FILE"
+    fi
+
+    NEW_NAME="$(jq -er \
+        --arg provider "$PROVIDER" \
+        'first(.[$provider][] | select(.isActive == true) | .accountId) | select(type == "string")' \
+        "$__OPENCODE_ACCOUNTS_FILE"
+    )"
+    _info "active account for provider ~c~%s~d~ is ~K~'~g~%s~K~'" "$PROVIDER" "$NEW_NAME"
+}
+
+__opencode_validate_account_provider() {
+    local PROVIDER="$1"
+
+    __opencode_ensure_accounts_file || return 1
+
+    if ! jq -e --arg key "$PROVIDER" 'has($key)' "$__OPENCODE_ACCOUNTS_FILE" >/dev/null; then
+        _err "there is no provider ~c~%s~d~, known provider(s): ~g~%s" \
+            "$PROVIDER" "$(__opencode_get_providers)"
+        return 1
+    elif jq -e --arg provider "$PROVIDER" '
+            [
+                .[$provider][]
+                | select(.isActive == true)
+            ]
+            | length > 1
+        ' "$__OPENCODE_ACCOUNTS_FILE" >/dev/null
+    then
+        _err "multiple accounts with isActive set to ~m~true~d~ were found for provider ~c~%s" "$PROVIDER"
+        return 1
+    elif ! jq -e --arg provider "$PROVIDER" '
+            [
+                .[$provider][]
+                | select(.isActive == true)
+            ]
+            | length == 1
+        ' "$__OPENCODE_ACCOUNTS_FILE" >/dev/null
+    then
+        _err "no accounts with isActive set to ~m~true~d~ were found for provider ~c~%s" "$PROVIDER"
+        return 1
+    elif jq -e --arg provider "$PROVIDER" '
+        (.[$provider] | map(.accountId)) as $account_ids
+        | ($account_ids | length) != ($account_ids | unique | length)
+        ' "$__OPENCODE_ACCOUNTS_FILE" >/dev/null
+    then
+        local DUPLICATE_ACCOUNT_ID
+        DUPLICATE_ACCOUNT_ID="$(
+            jq -r --arg provider "$PROVIDER" '
+                .[$provider]
+                | map(.accountId)
+                | group_by(.)
+                | .[]
+                | select(length > 1)
+                | .[0]
+            ' "$__OPENCODE_ACCOUNTS_FILE" |
+            head -n 1
+        )"
+        _err "duplicated accountId was found for provider ~c~%s~K~: ~r~%s" "$PROVIDER" "$DUPLICATE_ACCOUNT_ID"
+        return 1
+    fi
+
+    return 0
 }
 
 __opencode_ensure_accounts_file() {
+    local ACTUAL_PROVIDERS CURRENT_PROVIDERS TEMP_ACCOUNTS_FILE
+
     if [ ! -r "$__OPENCODE_AUTH_FILE" ]; then
         if [ -z "$__OPENCODE_SILENT" ]; then
             _err "could not find or read opencode auth file: %s" "$__OPENCODE_AUTH_FILE"
         fi
         return 1
     fi
+
     if [ ! -e "$__OPENCODE_ACCOUNTS_FILE" ]; then
         jq 'with_entries(
             .value = [
@@ -72,15 +259,19 @@ __opencode_ensure_accounts_file() {
                 }
             ]
         )' "$__OPENCODE_AUTH_FILE" > "$__OPENCODE_ACCOUNTS_FILE"
+        chmod 0600 "$__OPENCODE_ACCOUNTS_FILE"
         return 0
     fi
-    local ACTUAL_PROVIDERS CURRENT_PROVIDERS TEMP_ACCOUNTS_FILE
+
     # keys - sorts keys so we can just compare lists as strings
     ACTUAL_PROVIDERS="$(__opencode_get_providers)"
     CURRENT_PROVIDERS="$(jq -r 'keys | join(" ")' "$__OPENCODE_AUTH_FILE")"
     [ "$ACTUAL_PROVIDERS" != "$CURRENT_PROVIDERS" ] || return 0
+
     # add missing providers
     TEMP_ACCOUNTS_FILE="$(mktemp)"
+    chmod 0600 "$TEMP_ACCOUNTS_FILE"
+
     if ! jq -s '
             .[0] as $source
             | .[1] as $result
@@ -103,40 +294,72 @@ __opencode_ensure_accounts_file() {
         fi
         return 1
     fi
+
     mv -f "$TEMP_ACCOUNTS_FILE" "$__OPENCODE_ACCOUNTS_FILE"
+}
+
+__opencode_is_account_exist() {
+    local PROVIDER="$1" ACCOUNT_ID="$2"
+
+    jq -e --arg provider "$PROVIDER" --arg account_id "$ACCOUNT_ID" \
+        'any(.[$provider][]?; .accountId == $account_id)' \
+        "$__OPENCODE_ACCOUNTS_FILE" >/dev/null \
+        && return 0 || return 1
 }
 
 __opencode_get_providers() {
     jq -r 'keys | join(" ")' "$__OPENCODE_ACCOUNTS_FILE"
 }
 
+__opencode_get_inactive_account_ids() {
+    jq -r --arg provider "$PROVIDER" '
+        [
+            .[$provider][]
+            | select(.isActive != true)
+            | .accountId
+        ]
+        | join(" ")
+    ' "$__OPENCODE_ACCOUNTS_FILE"
+}
+
 __,opencode_complete() {
-
-    local __VAR
-
+    local CUR=${COMP_WORDS[COMP_CWORD]}
     COMPREPLY=()
 
     if [ "$COMP_CWORD" -lt 2 ]; then
         # Disable: Prefer mapfile or read -a to split command output (or quote to avoid splitting). [SC2207]
         # shellcheck disable=SC2207
-        COMPREPLY=($(compgen -W "account-set-active account-rename-active" -- "${COMP_WORDS[1]}"))
-        return
+        COMPREPLY=($(compgen -W "account-set-active account-save-active-as account-rename-active" -- "$CUR"))
+        return 0
+    else
+        local CMD="${COMP_WORDS[1]}"
+        if [ "$COMP_CWORD" -lt 3 ]; then
+            case "$CMD" in
+                account-set-active|account-rename-active|account-save-active-as)
+                    local PROVIDERS
+                    PROVIDERS="$(__opencode_get_providers)"
+                    # Disable: Prefer mapfile or read -a to split command output (or quote to avoid splitting). [SC2207]
+                    # shellcheck disable=SC2207
+                    COMPREPLY=($(compgen -W "$PROVIDERS" -- "$CUR"))
+                    return 0
+                    ;;
+            esac
+        elif [ "$COMP_CWORD" -lt 4 ]; then
+            local PROVIDER="${COMP_WORDS[2]}"
+            case "$CMD" in
+                account-set-active)
+                    local ACCOUNT_IDS
+                    ACCOUNT_IDS="$(__opencode_get_inactive_account_ids "$PROVIDER")"
+                    # Disable: Prefer mapfile or read -a to split command output (or quote to avoid splitting). [SC2207]
+                    # shellcheck disable=SC2207
+                    COMPREPLY=($(compgen -W "$ACCOUNT_IDS" -- "$CUR"))
+                    return 0
+                    ;;
+            esac
+        fi
     fi
 
-    # case "${COMP_WORDS[1]}" in
-    #     update-kubeconfig)
-    #         if ! __VAR="$(rancher clusters ls --format '{{.Cluster.Name}}' 2>&1)"; then
-    #             echo
-    #             cprintf -n '~r~ERROR~K~: ~d~%s' "$__VAR"
-    #             COMPREPLY=('~=~=~=~=~=~' '=~=~=~=~=~=')
-    #         else
-    #             # Disable: Prefer mapfile or read -a to split command output (or quote to avoid splitting). [SC2207]
-    #             # shellcheck disable=SC2207
-    #             COMPREPLY=($(compgen -W "$__VAR" -- "${COMP_WORDS[2]}"))
-    #         fi
-    #     ;;
-    # esac
-
+    return 0
 }
 
 complete -F __,opencode_complete ,opencode
