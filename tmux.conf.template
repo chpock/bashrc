@@ -17,6 +17,8 @@ set -g terminal-overrides ',xterm-256color:Tc'
 set -g base-index 1
 set -g pane-base-index 1
 set -s escape-time 50
+3.2+:set -g extended-keys on
+3.5+:set -g extended-keys-format csi-u
 3.3+:set -g allow-passthrough on
 set -g history-limit 1000000
 set -g automatic-rename off

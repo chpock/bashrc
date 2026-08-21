@@ -66,7 +66,7 @@ tool: tmux.conf
 https://raw.githubusercontent.com/chpock/bashrc/master/tmux.conf.template
 $IAM_HOME/tmux.conf.template
 has: tmux
-4572
+4640
 tool: bash completion
 https://raw.githubusercontent.com/docker/cli/master/contrib/completion/bash/docker
 $IAM_HOME/tools/bash_completion/docker.completion.bash
