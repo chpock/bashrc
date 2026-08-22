@@ -27,6 +27,28 @@ _has tmux || return
             fi
             return 1
             ;;
+        get-shell-session-ids)
+            local shell_session_file shell_session_id
+
+            # Read only saved tmux state. Live windows cannot have the deleted
+            # marker, so they do not need to be included in this list.
+            if [ -e "$SESSION_BACKUP_FILE" ]; then
+                while IFS="$SEP" read -r session_name session_persistent_id; do
+                    [ -n "$session_persistent_id" ] || continue
+                    session_dir="$TMUX_TMPDIR/id-$session_persistent_id"
+                    [ -e "$session_dir/backup" ] || continue
+                    while IFS="$SEP" read -r window_name window_persistent_id current_path; do
+                        [ -n "$window_persistent_id" ] || continue
+                        shell_session_file="$session_dir/wid-$window_persistent_id/shell_session_id"
+                        [ -r "$shell_session_file" ] || continue
+                        shell_session_id="$(< "$shell_session_file")"
+                        [ -n "$shell_session_id" ] || continue
+                        printf '%s ' "$shell_session_id"
+                    done < "$session_dir/backup"
+                done < "$SESSION_BACKUP_FILE"
+            fi
+            echo
+            ;;
         save)
             local window_index
             while IFS="$SEP" read -r session_name session_id session_persistent_id restore_state; do
@@ -352,4 +374,4 @@ _tmux_generate_conf() {
 
 __TMUX_FUNCTIONS_AVAILABLE=1
 
-complete -W 'save restore restore-single-session memory clean' ,tmux
+complete -W 'save restore restore-single-session get-shell-session-ids memory clean' ,tmux

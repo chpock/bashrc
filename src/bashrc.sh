@@ -1386,6 +1386,11 @@ fi
 _SHELL_SESSION_DIR="$IAM_HOME/session/shell/id-$_SHELL_SESSION_ID"
 mkdir -p "$_SHELL_SESSION_DIR"
 
+# A previous shell with this ID may have marked the session as deleted.
+# Reusing the ID proves that the session is alive again.
+_SHELL_SESSION_DELETED_FILE="$_SHELL_SESSION_DIR/deleted"
+rm -f "$_SHELL_SESSION_DELETED_FILE"
+
 if [ -n "$_TMUX_WINDOW_DIR" ]; then
     echo "$_SHELL_SESSION_ID" > "$_TMUX_WINDOW_DIR/shell_session_id"
     #_dbg "Assign shell session '%s' to tmux window '%s'" "$_SHELL_SESSION_ID" "$_TMUX_WINDOW_ID"
@@ -3261,7 +3266,12 @@ __debug_trap() {
 
 __cleanup_trap() {
     local RC=$?
-    rm -rf "$_SHELL_SESSION_DIR"
+    # Do not remove this directory when the shell exits. Its history and other
+    # state must survive cases where the shell exits but its session is expected
+    # to be restored, such as an orderly system reboot or a tmux server restart.
+    # Mark the session as deleted instead; a separate cleanup pass may remove
+    # the directory only while this marker remains.
+    echo > "$_SHELL_SESSION_DELETED_FILE"
     exit $RC
 }
 
@@ -3487,34 +3497,69 @@ if [ ! -x "$IAM_HOME/tools/bin/geturl" ]; then
     chmod +x "$IAM_HOME/tools/bin/geturl"
 fi
 
-if _isnot tmux && _isnot in-container; then
-    ! _has_function __gpgconf_validate || __gpgconf_validate
-fi
-
-if _isnot in-container && _has_function _install_get_tool_exe; then
-    _install_get_tool_exe -v FLYLINE_LIB flyline
-    if [ -n "$FLYLINE_LIB" ]; then
-        enable -f "$FLYLINE_LIB" flyline
-
-        flyline set-cursor --backend flyline --style "#52ad70" --effect fade --effect-easing in-out-sine --interpolate-easing out-elastic --interpolate none
-
-        # Remove `#idx=42462 7sec` from inline suggestions (make this as black on black)
-        flyline set-style inline-suggestion="black on black"
-
-        # Disable mouse
-        flyline mouse --mode disabled
-
-        # Don't use fuzzy match for suggestions
-        flyline suggestions set-fuzzy-mode none
-
-        if _has flycomp; then
-            FLYCOMP_DIR="$IAM_HOME/tools/bash_completion/flycomp"
-            mkdir -p "$FLYCOMP_DIR"
-            flyline suggestions --flycomp-output "$FLYCOMP_DIR" --use-flycomp true --auto-suggest true --sort-order mtime
-            unset FLYCOMP_DIR
-        fi
+# The initialization in this block is for full systems only. It is not run in
+# containers, where these gpgconf, flyline, and shell-session operations are unnecessary.
+if _isnot in-container; then
+    if _isnot tmux; then
+        ! _has_function __gpgconf_validate || __gpgconf_validate
     fi
-    unset FLYLINE_LIB
+
+    if _has_function _install_get_tool_exe; then
+        _install_get_tool_exe -v FLYLINE_LIB flyline
+        if [ -n "$FLYLINE_LIB" ]; then
+            enable -f "$FLYLINE_LIB" flyline
+
+            flyline set-cursor --backend flyline --style "#52ad70" --effect fade --effect-easing in-out-sine --interpolate-easing out-elastic --interpolate none
+
+            # Remove `#idx=42462 7sec` from inline suggestions (make this as black on black)
+            flyline set-style inline-suggestion="black on black"
+
+            # Disable mouse
+            flyline mouse --mode disabled
+
+            # Don't use fuzzy match for suggestions
+            flyline suggestions set-fuzzy-mode none
+
+            if _has flycomp; then
+                FLYCOMP_DIR="$IAM_HOME/tools/bash_completion/flycomp"
+                mkdir -p "$FLYCOMP_DIR"
+                flyline suggestions --flycomp-output "$FLYCOMP_DIR" --use-flycomp true --auto-suggest true --sort-order mtime
+                unset FLYCOMP_DIR
+            fi
+        fi
+        unset FLYLINE_LIB
+    fi
+
+    _CLEANUP_STAMP="$IAM_HOME/session/cleanup-stamp"
+    # Run cleanup at most once every twelve hours. Update the stamp before
+    # starting the background job so concurrent bootstraps normally skip it.
+    # A rare race can still start duplicate cleanups, which is harmless.
+    if [ ! -e "$_CLEANUP_STAMP" ] \
+        || [ -n "$(find "$_CLEANUP_STAMP" -mmin +720 -print 2>/dev/null)" ]; then
+        echo > "$_CLEANUP_STAMP"
+        (
+            [ -n "$__TMUX_FUNCTIONS_AVAILABLE" ] && SHELL_ID_LIST="$(,tmux get-shell-session-ids)" || SHELL_ID_LIST=
+            # Search for explicit deletion markers instead of searching for
+            # session directories themselves. __cleanup_trap keeps a directory
+            # and writes this marker when its shell exits; bootstrap removes the
+            # marker when the session ID is reused, so its presence identifies a
+            # session directory that is no longer active.
+            # `-type f -name deleted` selects only these marker files, while
+            # `-mmin +360` selects markers older than six hours and gives a
+            # recently exited shell enough time to be restored. `-print` passes
+            # each marker path to the loop, which derives the directory and
+            # checks its shell ID before deciding whether to remove it.
+            while IFS= read -r DELETED_FILE; do
+                SHELL_DIR="${DELETED_FILE%/deleted}"
+                SHELL_ID="${SHELL_DIR##*/id-}"
+                case " $SHELL_ID_LIST " in
+                    *" $SHELL_ID "*) ;;
+                    *) rm -rf "$SHELL_DIR" ;;
+                esac
+            done < <(find "$IAM_HOME/session/shell" -type f -name deleted -mmin +360 -print)
+        ) >/dev/null 2>&1 &
+    fi
+    unset _CLEANUP_STAMP
 fi
 
 if _isnot tmux; then

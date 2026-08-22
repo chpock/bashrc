@@ -515,8 +515,8 @@ EOF
 
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
-LOCAL_TOOLS_FILE_HASH=FD8122F7
-BASHRC_FILE_HASH=072C36B4
+LOCAL_TOOLS_FILE_HASH=CA4F22F5
+BASHRC_FILE_HASH=031D4A39
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -1568,6 +1568,8 @@ _unexport _SHELL_SESSION_ID
 fi
 _SHELL_SESSION_DIR="$IAM_HOME/session/shell/id-$_SHELL_SESSION_ID"
 mkdir -p "$_SHELL_SESSION_DIR"
+_SHELL_SESSION_DELETED_FILE="$_SHELL_SESSION_DIR/deleted"
+rm -f "$_SHELL_SESSION_DELETED_FILE"
 if [ -n "$_TMUX_WINDOW_DIR" ]; then
 echo "$_SHELL_SESSION_ID" > "$_TMUX_WINDOW_DIR/shell_session_id"
 elif [ -n "$_TERM_SESSION_DIR" ]; then
@@ -1851,8 +1853,6 @@ MEM_FREE=$(( (_memFree + _buffers + _cached) / 1024 ))
 SWAP_TOTAL=$(( _swapTotal / 1024 ))
 SWAP_FREE=$(( _swapFree / 1024 ))
 elif _has vm_stat; then
-EOF
-cat <<'EOF' >> "$IAM_HOME/bashrc"
 read -r SWAP_TOTAL SWAP_FREE <<< "$(sysctl vm.swapusage | awk '{ print $4 "\n" $10 }')"
 SWAP_TOTAL="${SWAP_TOTAL%%.*}"
 SWAP_FREE="${SWAP_FREE%%.*}"
@@ -1868,6 +1868,8 @@ fi
 done < <(vm_stat)
 MEM_FREE=$(( MEM_FREE * 4096 / 1024 / 1024 ))
 fi
+EOF
+cat <<'EOF' >> "$IAM_HOME/bashrc"
 if [ -n "$MEM_TOTAL" ]; then
 _showinfo "RAM" "$MEM_TOTAL" "$MEM_FREE"
 if [ "$SWAP_TOTAL" -eq 0 ]; then
@@ -2800,7 +2802,7 @@ PS1_COMMAND="$BASH_COMMAND"
 }
 __cleanup_trap() {
 local RC=$?
-rm -rf "$_SHELL_SESSION_DIR"
+echo > "$_SHELL_SESSION_DELETED_FILE"
 exit $RC
 }
 PROMPT_COMMAND="{ __debug_trap off \$? && __EC=0 || __EC=\$?; promptcmd \$__EC; unset __EC; __debug_trap on; } 2>/dev/null"
@@ -2982,10 +2984,11 @@ echo '_get_url "$@"'
 } > "$IAM_HOME/tools/bin/geturl"
 chmod +x "$IAM_HOME/tools/bin/geturl"
 fi
-if _isnot tmux && _isnot in-container; then
+if _isnot in-container; then
+if _isnot tmux; then
 ! _has_function __gpgconf_validate || __gpgconf_validate
 fi
-if _isnot in-container && _has_function _install_get_tool_exe; then
+if _has_function _install_get_tool_exe; then
 _install_get_tool_exe -v FLYLINE_LIB flyline
 if [ -n "$FLYLINE_LIB" ]; then
 enable -f "$FLYLINE_LIB" flyline
@@ -3001,6 +3004,24 @@ unset FLYCOMP_DIR
 fi
 fi
 unset FLYLINE_LIB
+fi
+_CLEANUP_STAMP="$IAM_HOME/session/cleanup-stamp"
+if [ ! -e "$_CLEANUP_STAMP" ] \
+|| [ -n "$(find "$_CLEANUP_STAMP" -mmin +720 -print 2>/dev/null)" ]; then
+echo > "$_CLEANUP_STAMP"
+(
+[ -n "$__TMUX_FUNCTIONS_AVAILABLE" ] && SHELL_ID_LIST="$(,tmux get-shell-session-ids)" || SHELL_ID_LIST=
+while IFS= read -r DELETED_FILE; do
+SHELL_DIR="${DELETED_FILE%/deleted}"
+SHELL_ID="${SHELL_DIR##*/id-}"
+case " $SHELL_ID_LIST " in
+*" $SHELL_ID "*) ;;
+*) rm -rf "$SHELL_DIR" ;;
+esac
+done < <(find "$IAM_HOME/session/shell" -type f -name deleted -mmin +360 -print)
+) >/dev/null 2>&1 &
+fi
+unset _CLEANUP_STAMP
 fi
 if _isnot tmux; then
 if _is wsl; then
