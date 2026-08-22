@@ -516,7 +516,7 @@ EOF
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
 LOCAL_TOOLS_FILE_HASH=681822F0
-BASHRC_FILE_HASH=5537DB6B
+BASHRC_FILE_HASH=A026F9C2
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -1842,9 +1842,9 @@ MEM_TOTAL=$(sysctl hw.memsize | awk '{ print $NF }')
 MEM_TOTAL=$(( MEM_TOTAL / 1024 / 1024 ))
 MEM_FREE=0
 while IFS=$':\r\n' read -r a b; do
+if [ "$a" = "Pages free" ] || [ "$a" = "Pages inactive" ] || [ "$a" = "Pages speculative" ]; then
 EOF
 cat <<'EOF' >> "$IAM_HOME/bashrc"
-if [ "$a" = "Pages free" ] || [ "$a" = "Pages inactive" ] || [ "$a" = "Pages speculative" ]; then
 b="${b// /}"
 b="${b//./}"
 MEM_FREE=$(( MEM_FREE + b ))
@@ -2927,7 +2927,9 @@ fi
 fi
 if [ "$TERM" != "xterm-256color" ] && [ "$TERM" != "tmux-256color" ]; then
 unset TERMINFO
-_warn 'Unexpected TERM type: "%s"\n' "$TERM"
+if _hasnot infocmp || ! infocmp -- "$TERM" >/dev/null 2>&1; then
+_warn 'Terminal info for current TERM is unknown: "%s"\n' "$TERM"
+fi
 elif [ ! -e "$(echo "$IAM_HOME/terminfo"/*/xterm-256color)" ]; then
 _warn 'Terminfo file "%s" not found. Perhaps the "tic" command does not exist in the environment.\n' "$IAM_HOME/terminfo/*/xterm-256color"
 unset TERMINFO

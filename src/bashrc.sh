@@ -3424,7 +3424,9 @@ fi
 if [ "$TERM" != "xterm-256color" ] && [ "$TERM" != "tmux-256color" ]; then
     # unset custom TERMINFO since we don't have definitions for this terminal
     unset TERMINFO
-    _warn 'Unexpected TERM type: "%s"\n' "$TERM"
+    if _hasnot infocmp || ! infocmp -- "$TERM" >/dev/null 2>&1; then
+        _warn 'Terminal info for current TERM is unknown: "%s"\n' "$TERM"
+    fi
 elif [ ! -e "$(echo "$IAM_HOME/terminfo"/*/xterm-256color)" ]; then
     _warn 'Terminfo file "%s" not found. Perhaps the "tic" command does not exist in the environment.\n' "$IAM_HOME/terminfo/*/xterm-256color"
     unset TERMINFO
