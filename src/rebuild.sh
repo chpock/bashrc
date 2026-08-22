@@ -102,9 +102,26 @@ tcl() {
 }
 
 tmux-conf() {
-    # remove comments
-    # remove empty lines
-    sed -E -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$/d'
+    # remove comments and empty lines
+    # convert version comments into prefixes on the following line
+    awk '
+        {
+            if (version != "") {
+                print version ":" $0
+                version=""
+                next
+            }
+            if ($0 ~ /^[[:space:]]*#[[:space:]]version:[[:space:]]*/) {
+                version=$0
+                sub(/^[[:space:]]*#[[:space:]]version:[[:space:]]*/, "", version)
+                next
+            }
+            if ($0 ~ /^[[:space:]]*#/ || $0 ~ /^[[:space:]]*$/) {
+                next
+            }
+            print
+        }
+    '
 }
 
 vimrc() {
