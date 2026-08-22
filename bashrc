@@ -515,8 +515,8 @@ EOF
 
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
-LOCAL_TOOLS_FILE_HASH=681822F0
-BASHRC_FILE_HASH=A026F9C2
+LOCAL_TOOLS_FILE_HASH=FD8122F7
+BASHRC_FILE_HASH=072C36B4
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -1375,12 +1375,30 @@ for SCRIPT in "$IAM_HOME"/functions/*; do
 ! _once "PS1 -> source $SCRIPT" || source "$SCRIPT"
 done
 unset SCRIPT
-if _has tmux; then
-[ ! -n "$__TMUX_FUNCTIONS_AVAILABLE" ] || _tmux_generate_conf
+if _has tmux && [ -n "$__TMUX_FUNCTIONS_AVAILABLE" ]; then
+_tmux_generate_conf
 TMUX_TMPDIR="$IAM_HOME/session/tmux"
 export TMUX_TMPDIR
 [ -e "$TMUX_TMPDIR" ] || mkdir -p "$TMUX_TMPDIR"
 if _is tmux; then
+if [ "$(command tmux display-message -p -t "$TMUX_PANE" '#{window_name}' 2>/dev/null)" = "__dummy__" ] \
+&& [ "$(command tmux show -t "$TMUX_PANE" -v '@restore-state' 2>/dev/null)" = "pending" ]; then
+if [ -z "$_TMUX_SESSION_ID" ]; then
+echo '[TMUX] Cannot restore dummy window: session persistent ID is missing.' >&2
+exit 1
+fi
+echo
+echo '[TMUX] This session is suspended to save startup time.'
+echo '[TMUX] Press Enter to restore all windows in this session.'
+while :; do
+IFS= read -r || exit 1
+if ,tmux restore-single-session "$_TMUX_SESSION_ID"; then
+command tmux kill-window -t "$TMUX_PANE" >/dev/null 2>&1 || true
+exit 0
+fi
+echo '[TMUX] Restore failed. Press Enter to retry.'
+done
+fi
 if [ -n "$_TMUX_SESSION_ID" ]; then
 _unexport _TMUX_SESSION_ID
 else
@@ -1408,8 +1426,8 @@ if ! _TMUX_WINDOW_IS_NEW="$(command tmux show -w -t "$TMUX_PANE" -v '@is-new' 2>
 || awk 'NF{last=NR} {lines[NR]=$0} END{for(i=1;i<=last;i++)print lines[i]}' "$_TMUX_WINDOW_DUMP_FILE"
 command tmux set -w -t "$TMUX_PANE" '@is-new' "no"
 fi
-fi
-if _isnot tmux; then
+alias tmux="tmux -f \"\$IAM_HOME/tmux.conf\""
+else
 tmux() {
 local _TMUX_SESSION_ID
 local TMUX_CONFIG="$IAM_HOME/tmux.conf"
@@ -1456,7 +1474,7 @@ exec tmux -f "$TMUX_CONFIG" "$@"
 fi
 command tmux -f "$TMUX_CONFIG" "$@"
 }
-[ -z "$__TMUX_FUNCTIONS_AVAILABLE" ] || ,tmux restore
+,tmux restore
 if [ -n "$_TERM_SESSION_DIR" ] && [ -e "$_TERM_SESSION_DIR/tmux_session_id" ]; then
 _TMUX_SESSION_ID="$(< "$_TERM_SESSION_DIR/tmux_session_id")"
 _TMUX_SESSION_DIR="$TMUX_TMPDIR/id-$_TMUX_SESSION_ID"
@@ -1486,8 +1504,6 @@ fi
 exec tmux attach-session -t "$_MAGIC_TMUX"
 fi
 fi
-else
-alias tmux="tmux -f \"\$IAM_HOME/tmux.conf\""
 fi
 fi; # tmux
 __magic_ssh() {
@@ -1835,6 +1851,8 @@ MEM_FREE=$(( (_memFree + _buffers + _cached) / 1024 ))
 SWAP_TOTAL=$(( _swapTotal / 1024 ))
 SWAP_FREE=$(( _swapFree / 1024 ))
 elif _has vm_stat; then
+EOF
+cat <<'EOF' >> "$IAM_HOME/bashrc"
 read -r SWAP_TOTAL SWAP_FREE <<< "$(sysctl vm.swapusage | awk '{ print $4 "\n" $10 }')"
 SWAP_TOTAL="${SWAP_TOTAL%%.*}"
 SWAP_FREE="${SWAP_FREE%%.*}"
@@ -1843,8 +1861,6 @@ MEM_TOTAL=$(( MEM_TOTAL / 1024 / 1024 ))
 MEM_FREE=0
 while IFS=$':\r\n' read -r a b; do
 if [ "$a" = "Pages free" ] || [ "$a" = "Pages inactive" ] || [ "$a" = "Pages speculative" ]; then
-EOF
-cat <<'EOF' >> "$IAM_HOME/bashrc"
 b="${b// /}"
 b="${b//./}"
 MEM_FREE=$(( MEM_FREE + b ))

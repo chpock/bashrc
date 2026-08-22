@@ -1135,9 +1135,9 @@ for SCRIPT in "$IAM_HOME"/functions/*; do
 done
 unset SCRIPT
 
-if _has tmux; then
+if _has tmux && [ -n "$__TMUX_FUNCTIONS_AVAILABLE" ]; then
 
-    [ ! -n "$__TMUX_FUNCTIONS_AVAILABLE" ] || _tmux_generate_conf
+    _tmux_generate_conf
 
     # don't store session sockets in /tmp because they can be
     # cleared by anyone at any time
@@ -1146,6 +1146,28 @@ if _has tmux; then
     [ -e "$TMUX_TMPDIR" ] || mkdir -p "$TMUX_TMPDIR"
 
     if _is tmux; then
+        # A restored session starts with a dummy window running this same bashrc.
+        # Keep the dummy outside the regular tmux-window initialization below: it
+        # must not receive a persistent window ID or be saved as a real window.
+        if [ "$(command tmux display-message -p -t "$TMUX_PANE" '#{window_name}' 2>/dev/null)" = "__dummy__" ] \
+            && [ "$(command tmux show -t "$TMUX_PANE" -v '@restore-state' 2>/dev/null)" = "pending" ]; then
+            if [ -z "$_TMUX_SESSION_ID" ]; then
+                echo '[TMUX] Cannot restore dummy window: session persistent ID is missing.' >&2
+                exit 1
+            fi
+            echo
+            echo '[TMUX] This session is suspended to save startup time.'
+            echo '[TMUX] Press Enter to restore all windows in this session.'
+            while :; do
+                IFS= read -r || exit 1
+                if ,tmux restore-single-session "$_TMUX_SESSION_ID"; then
+                    command tmux kill-window -t "$TMUX_PANE" >/dev/null 2>&1 || true
+                    exit 0
+                fi
+                echo '[TMUX] Restore failed. Press Enter to retry.'
+            done
+        fi
+
         if [ -n "$_TMUX_SESSION_ID" ]; then
             #_dbg "_TMUX_SESSION_ID=%s (from tmux env)" "$_TMUX_SESSION_ID"
             _unexport _TMUX_SESSION_ID
@@ -1187,9 +1209,9 @@ if _has tmux; then
             # Mark current window is "NOT new"
             command tmux set -w -t "$TMUX_PANE" '@is-new' "no"
         fi
-    fi
 
-    if _isnot tmux; then
+        alias tmux="tmux -f \"\$IAM_HOME/tmux.conf\""
+    else
 
         tmux() {
             local _TMUX_SESSION_ID
@@ -1243,7 +1265,7 @@ if _has tmux; then
 
         # The 'tmux' function should be available the moment we call ',tmux restore'. We execute 'tmux'
         # with the correct tmux configuration file in the scope of this function.
-        [ -z "$__TMUX_FUNCTIONS_AVAILABLE" ] || ,tmux restore
+        ,tmux restore
 
         # Restore tmux session for specific terminal. This should be done after restoring tmux sessions
         # with ',tmux restore'.
@@ -1284,10 +1306,7 @@ if _has tmux; then
             fi
         fi
 
-    else
-        alias tmux="tmux -f \"\$IAM_HOME/tmux.conf\""
     fi
-
 fi; # tmux
 
 # __magic_ssh and ,ssh should be here and before other initializetion/shell sessions

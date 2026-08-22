@@ -30,7 +30,7 @@ tool: tmux function
 https://raw.githubusercontent.com/chpock/bashrc/master/functions/tmux.sh
 $IAM_HOME/functions/tmux.sh
 has: tmux
-11465
+18474
 tool: python functions
 https://raw.githubusercontent.com/chpock/bashrc/master/functions/python.sh
 $IAM_HOME/functions/python.sh
