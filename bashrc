@@ -516,7 +516,7 @@ EOF
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
 LOCAL_TOOLS_FILE_HASH=CA4F22F5
-BASHRC_FILE_HASH=031D4A39
+BASHRC_FILE_HASH=B62953DA
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -3020,6 +3020,7 @@ case " $SHELL_ID_LIST " in
 esac
 done < <(find "$IAM_HOME/session/shell" -type f -name deleted -mmin +360 -print)
 ) >/dev/null 2>&1 &
+disown "$!" 2>/dev/null || :
 fi
 unset _CLEANUP_STAMP
 fi

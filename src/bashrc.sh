@@ -3558,6 +3558,7 @@ if _isnot in-container; then
                 esac
             done < <(find "$IAM_HOME/session/shell" -type f -name deleted -mmin +360 -print)
         ) >/dev/null 2>&1 &
+        disown "$!" 2>/dev/null || :
     fi
     unset _CLEANUP_STAMP
 fi
