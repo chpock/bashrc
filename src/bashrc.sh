@@ -2197,10 +2197,10 @@ if _has rgrc; then
     # iptables irclog iwconfig last ldap lsattr lsblk lsmod lsof \
     # lspci lsusb mount mvn netstat nmap ntpdate ping ping2 podman proftpd \
     # ps pv semanage sensors showmount sockstat sql ss stat sysctl systemctl \
-    # tcpdump traceroute tune2fs ulimit uptime vmstat wdiff whois go iostat
+    # tcpdump traceroute tune2fs ulimit uptime vmstat wdiff whois go iostat apk
     #
     # Don't include 'docker' here as we have dedicated function for docker.
-    for cmd in ant blkid curl cvs df dig diskutil dnf du kdig dummy
+    for cmd in ant blkid curl cvs df dig diskutil dnf du kdig dummy apk
     do
         # Disable: This expands when defined, not when used. Consider escaping. [SC2139]
         # shellcheck disable=SC2139

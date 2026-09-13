@@ -515,8 +515,8 @@ EOF
 
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
-LOCAL_TOOLS_FILE_HASH=CA4F22F5
-BASHRC_FILE_HASH=B62953DA
+LOCAL_TOOLS_FILE_HASH=279022E4
+BASHRC_FILE_HASH=930C5692
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -2096,7 +2096,7 @@ bind '"\e[2~": quoted-insert'
 bind '"\e[1;5D": backward-word'
 bind '"\e[1;5C": forward-word'
 if _has rgrc; then
-for cmd in ant blkid curl cvs df dig diskutil dnf du kdig dummy
+for cmd in ant blkid curl cvs df dig diskutil dnf du kdig dummy apk
 do
 _hasnot "$cmd" || alias "$cmd"="rgrc $cmd"
 done

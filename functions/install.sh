@@ -2,7 +2,7 @@
 
 __INSTALL_VERSION="
   moar          1.31.8 auto
-  rgrc          0.6.14 auto
+  rgrc          0.6.34 auto
   flyline:libflyline.so 1.3.0  auto
   flycomp       1.1.2  auto
   shellcheck    0.10.0
