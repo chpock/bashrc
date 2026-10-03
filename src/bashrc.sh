@@ -605,6 +605,7 @@ _is() {
             TMUX_VERSION="$(command tmux -V 2>/dev/null | sed 's/[^[:digit:].]//g')"
             [ -n "$TMUX_VERSION" ] && _vercomp "$TMUX_VERSION" '>=' 3.7 || R=1
             ;;
+        herdr)       [ "$HERDR_ENV" = "1" ] || R=1 ;;
         # Clouds
         aws)         _is cloud && curl -s -I http://169.254.169.254 | grep -qF 'Server: EC2ws' || R=1 ;;
         aws_metadata_available)
@@ -1961,7 +1962,7 @@ hostinfo() {
 
 }
 
-_is tmux || hostinfo
+_is tmux || _is herdr || hostinfo
 
 if [ -f /etc/bash_completion ]; then
     # shellcheck source=/dev/null
@@ -3402,7 +3403,7 @@ if [ ! -z "$FOUND" ]; then
     unset FOUND
 fi
 
-if _has ssh && _isnot in-container && _isnot tmux; then
+if _has ssh && _isnot in-container && _isnot tmux && _isnot herdr; then
     if ! RESULT="$(ssh -G 127.0.0.1 2>&1)"; then
         _warn 'unknown error while checking SSH ServerAliveInterval\n'
     else
@@ -3500,7 +3501,7 @@ fi
 # The initialization in this block is for full systems only. It is not run in
 # containers, where these gpgconf, flyline, and shell-session operations are unnecessary.
 if _isnot in-container; then
-    if _isnot tmux; then
+    if _isnot tmux && _isnot herdr; then
         ! _has_function __gpgconf_validate || __gpgconf_validate
     fi
 
@@ -3563,7 +3564,7 @@ if _isnot in-container; then
     unset _CLEANUP_STAMP
 fi
 
-if _isnot tmux; then
+if _isnot tmux && _isnot herdr; then
 
     if _is wsl; then
         # Check option=metadata in /etc/wsl.conf

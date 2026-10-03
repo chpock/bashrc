@@ -516,7 +516,7 @@ EOF
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
 LOCAL_TOOLS_FILE_HASH=279022E4
-BASHRC_FILE_HASH=930C5692
+BASHRC_FILE_HASH=EE5076E6
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -980,6 +980,7 @@ local TMUX_VERSION
 TMUX_VERSION="$(command tmux -V 2>/dev/null | sed 's/[^[:digit:].]//g')"
 [ -n "$TMUX_VERSION" ] && _vercomp "$TMUX_VERSION" '>=' 3.7 || R=1
 ;;
+herdr)       [ "$HERDR_ENV" = "1" ] || R=1 ;;
 aws)         _is cloud && curl -s -I http://169.254.169.254 | grep -qF 'Server: EC2ws' || R=1 ;;
 aws_metadata_available)
 _is aws && TMPVAL="$(_aws_metadata instance-id)" && [ -n "$TMPVAL" ] || R=1
@@ -1966,7 +1967,7 @@ _showfeature \
 fi
 sep "Features"
 }
-_is tmux || hostinfo
+_is tmux || _is herdr || hostinfo
 if [ -f /etc/bash_completion ]; then
 . /etc/bash_completion
 elif [ -f /etc/profile.d/bash_completion.sh ]; then
@@ -2900,7 +2901,7 @@ if [ ! -z "$FOUND" ]; then
 echo ""
 unset FOUND
 fi
-if _has ssh && _isnot in-container && _isnot tmux; then
+if _has ssh && _isnot in-container && _isnot tmux && _isnot herdr; then
 if ! RESULT="$(ssh -G 127.0.0.1 2>&1)"; then
 _warn 'unknown error while checking SSH ServerAliveInterval\n'
 else
@@ -2985,7 +2986,7 @@ echo '_get_url "$@"'
 chmod +x "$IAM_HOME/tools/bin/geturl"
 fi
 if _isnot in-container; then
-if _isnot tmux; then
+if _isnot tmux && _isnot herdr; then
 ! _has_function __gpgconf_validate || __gpgconf_validate
 fi
 if _has_function _install_get_tool_exe; then
@@ -3024,7 +3025,7 @@ disown "$!" 2>/dev/null || :
 fi
 unset _CLEANUP_STAMP
 fi
-if _isnot tmux; then
+if _isnot tmux && _isnot herdr; then
 if _is wsl; then
 if [ ! -f /etc/wsl.conf ] || ! grep -q -E '^options\s*=.*metadata' /etc/wsl.conf; then
 _warn 'etc/wsl.conf does not contain "option=metadata" in the section "[autoconf]". This is necessary to preserve the linux permissions on the Windows file system.'
