@@ -85,6 +85,8 @@ _is_yadm() {
         "$HOME") :;;
         "$HOME"/.config|"$HOME"/.config/*) :;;
         "$HOME"/.local|"$HOME"/.local/*) :;;
+        "$HOME"/.pi|"$HOME"/.pi/*) :;;
+        "$HOME"/.agents|"$HOME"/.agents/*) :;;
         *) return 1;;
     esac
     # If we are here, then current directory is under yadm. However, we might be
