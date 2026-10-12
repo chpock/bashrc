@@ -516,7 +516,7 @@ EOF
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
 LOCAL_TOOLS_FILE_HASH=C73E22E0
-BASHRC_FILE_HASH=EE5076E6
+BASHRC_FILE_HASH=7E09CD80
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -1869,10 +1869,10 @@ fi
 done < <(vm_stat)
 MEM_FREE=$(( MEM_FREE * 4096 / 1024 / 1024 ))
 fi
-EOF
-cat <<'EOF' >> "$IAM_HOME/bashrc"
 if [ -n "$MEM_TOTAL" ]; then
 _showinfo "RAM" "$MEM_TOTAL" "$MEM_FREE"
+EOF
+cat <<'EOF' >> "$IAM_HOME/bashrc"
 if [ "$SWAP_TOTAL" -eq 0 ]; then
 cprintf -- "Swap      : ~y~%s" "Not installed"
 else
@@ -2192,6 +2192,11 @@ set -- "$@" -auto-approve
 fi
 terragrunt "$@"
 }
+fi
+if _has pi && [ -d ~/.pi/agent/npm/node_modules/pi-mini ]; then
+alias pi-mini='pi --offline --tui-mini --tui-mode regular --no-session --no-extensions \
+-e ~/.pi/agent/npm/node_modules/pi-mini \
+-e ~/.pi/agent/npm/node_modules/pi-web-access'
 fi
 if _has vim; then
 EDITOR="vim -u $IAM_HOME/vimrc -i $IAM_HOME/viminfo"

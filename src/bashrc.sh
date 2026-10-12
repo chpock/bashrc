@@ -2340,6 +2340,12 @@ if _has terragrunt; then
     }
 fi
 
+if _has pi && [ -d ~/.pi/agent/npm/node_modules/pi-mini ]; then
+    alias pi-mini='pi --offline --tui-mini --tui-mode regular --no-session --no-extensions \
+        -e ~/.pi/agent/npm/node_modules/pi-mini \
+        -e ~/.pi/agent/npm/node_modules/pi-web-access'
+fi
+
 if _has vim; then
     EDITOR="vim -u $IAM_HOME/vimrc -i $IAM_HOME/viminfo"
 elif _has vi; then
