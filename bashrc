@@ -516,7 +516,7 @@ EOF
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
 LOCAL_TOOLS_FILE_HASH=C73E22E0
-BASHRC_FILE_HASH=7E09CD80
+BASHRC_FILE_HASH=5964CD80
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -1031,9 +1031,9 @@ _env_save
 _env_unset() {
 local VAR CHANGED=0
 for VAR; do
+unset "$VAR"
 _env_has "$VAR" || continue
 CHANGED=1
-unset "$VAR"
 local ITEM TEMP_ARR=()
 for ITEM in "${__PERSISTENT_ENV[@]}"; do
 [ "$ITEM" = "$VAR" ] || TEMP_ARR+=("$ITEM")

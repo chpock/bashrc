@@ -680,9 +680,9 @@ _env_set() {
 _env_unset() {
     local VAR CHANGED=0
     for VAR; do
+        unset "$VAR"
         _env_has "$VAR" || continue
         CHANGED=1
-        unset "$VAR"
         local ITEM TEMP_ARR=()
         for ITEM in "${__PERSISTENT_ENV[@]}"; do
             [ "$ITEM" = "$VAR" ] || TEMP_ARR+=("$ITEM")
