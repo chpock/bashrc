@@ -1382,7 +1382,7 @@ if [ -n "$__INSTALL_AUTO" ]; then
     # Install update auto-install tools
     (
         for TOOL in $__INSTALL_AUTO; do
-            ,install "$__INSTALL_AUTO"
+            ,install "$TOOL"
         done
     ) >/dev/null 2>&1 &
     disown $!
