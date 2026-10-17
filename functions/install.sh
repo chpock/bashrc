@@ -3,7 +3,7 @@
 __INSTALL_VERSION="
   moar          1.31.8 auto
   rgrc          0.6.34 auto
-  flyline:libflyline.so 1.3.0  auto
+  flyline:libflyline.so 1.10.0  auto
   flycomp       1.1.2  auto
   shellcheck    0.10.0
   awscli:aws    2.24.26
@@ -77,7 +77,7 @@ __install_flyline() {
     local VERSION="$1" EXECUTABLE="$2"
 
     if [ "$VERSION" = "-check" ]; then
-        strings "$EXECUTABLE" | grep -Po 'FLYLINE_VERSION\K[0-9.]+'
+        strings "$EXECUTABLE" | grep -Po '^## v\K[0-9\.]+' | tail -n1
         return 0
     elif [ "$VERSION" = "-latest" ]; then
         __install_get_latest_github "HalFrgrd/flyline"
