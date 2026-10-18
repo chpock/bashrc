@@ -800,6 +800,12 @@ fi
 # This can happen when another application creates its own tmux sessions.
 # In that case, return early to skip the remaining custom shell initialization.
 if _is tmux && [ -z "$TMUX_TMPDIR" ]; then
+    # If an application uses the default tmux server without our config,
+    # apply at least the minimal configuration.
+    #
+    # These options enable extended keys in tmux to support Alt+Enter in TUIs,
+    # such as coding agents (pi/opencode) launched by Sidekick in Neovim.
+    command tmux set-option -s extended-keys on \; set-option -s extended-keys-format csi-u >/dev/null 2>&1 || :
     return 0
 fi
 
