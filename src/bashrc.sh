@@ -795,6 +795,14 @@ if [ "$LANG" != "en_US.UTF-8" ] && _has locale && [ "$(LANG=en_US.UTF-8 locale c
     export LANG
 fi
 
+# In a regular shell, we always set TMUX_TMPDIR to use our tmux server.
+# If TMUX_TMPDIR is unset, we assume the default tmux server is being used.
+# This can happen when another application creates its own tmux sessions.
+# In that case, return early to skip the remaining custom shell initialization.
+if _is tmux && [ -z "$TMUX_TMPDIR" ]; then
+    return 0
+fi
+
 mkdir -p "$IAM_HOME/state"
 
 if [ -n "$BASHRC_FILE_HASH" ]; then
