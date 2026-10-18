@@ -516,7 +516,7 @@ EOF
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
 LOCAL_TOOLS_FILE_HASH=EEEA22EC
-BASHRC_FILE_HASH=07F22320
+BASHRC_FILE_HASH=82012368
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -1116,10 +1116,6 @@ fi
 if [ "$LANG" != "en_US.UTF-8" ] && _has locale && [ "$(LANG=en_US.UTF-8 locale charmap 2>/dev/null)" = "UTF-8" ]; then
 LANG="en_US.UTF-8"
 export LANG
-fi
-if _is tmux && [ -z "$TMUX_TMPDIR" ]; then
-command tmux set-option -s extended-keys on \; set-option -s extended-keys-format csi-u >/dev/null 2>&1 || :
-return 0
 fi
 mkdir -p "$IAM_HOME/state"
 if [ -n "$BASHRC_FILE_HASH" ]; then
@@ -1872,14 +1868,14 @@ MEM_FREE=$(( MEM_FREE + b ))
 fi
 done < <(vm_stat)
 MEM_FREE=$(( MEM_FREE * 4096 / 1024 / 1024 ))
-EOF
-cat <<'EOF' >> "$IAM_HOME/bashrc"
 fi
 if [ -n "$MEM_TOTAL" ]; then
 _showinfo "RAM" "$MEM_TOTAL" "$MEM_FREE"
 if [ "$SWAP_TOTAL" -eq 0 ]; then
 cprintf -- "Swap      : ~y~%s" "Not installed"
 else
+EOF
+cat <<'EOF' >> "$IAM_HOME/bashrc"
 _showinfo "Swap" "$SWAP_TOTAL" "$SWAP_FREE"
 fi
 sep "Memory"
