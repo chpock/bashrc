@@ -3524,20 +3524,20 @@ if _isnot in-container; then
             # Disable mouse
             flyline mouse --mode disabled
 
-            # Don't use fuzzy match for suggestions
-            flyline suggestions set-fuzzy-mode none
-
-            # Enable suggestion but without a popup
-            flyline suggestions --auto-suggest false --auto-suggest-inline true
-
             # Don't use useless animations and other easter eggs
             # https://github.com/HalFrgrd/flyline/pull/830
             flyline --enable-easter-eggs false
 
+            # Don't use fuzzy match for directory suggestions
+            flyline suggestions set-fuzzy-mode folder-prefixes
+
+            # Enable suggestion but without a popup
+            flyline suggestions --auto-suggest false --auto-suggest-inline true
+
             if _has flycomp; then
                 FLYCOMP_DIR="$IAM_HOME/tools/bash_completion/flycomp"
                 mkdir -p "$FLYCOMP_DIR"
-                flyline suggestions --flycomp-output "$FLYCOMP_DIR" --use-flycomp true --auto-suggest true --sort-order mtime
+                flyline suggestions --flycomp-output "$FLYCOMP_DIR" --use-flycomp true --sort-order mtime
                 unset FLYCOMP_DIR
             fi
         fi

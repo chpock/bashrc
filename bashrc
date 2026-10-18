@@ -516,7 +516,7 @@ EOF
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
 LOCAL_TOOLS_FILE_HASH=EEEA22EC
-BASHRC_FILE_HASH=17EA2256
+BASHRC_FILE_HASH=82012368
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -3001,13 +3001,13 @@ enable -f "$FLYLINE_LIB" flyline
 flyline set-cursor --backend flyline --style "#52ad70" --effect fade --effect-easing in-out-sine --interpolate-easing out-elastic --interpolate none
 flyline editor --show-inline-history-metadata false
 flyline mouse --mode disabled
-flyline suggestions set-fuzzy-mode none
-flyline suggestions --auto-suggest false --auto-suggest-inline true
 flyline --enable-easter-eggs false
+flyline suggestions set-fuzzy-mode folder-prefixes
+flyline suggestions --auto-suggest false --auto-suggest-inline true
 if _has flycomp; then
 FLYCOMP_DIR="$IAM_HOME/tools/bash_completion/flycomp"
 mkdir -p "$FLYCOMP_DIR"
-flyline suggestions --flycomp-output "$FLYCOMP_DIR" --use-flycomp true --auto-suggest true --sort-order mtime
+flyline suggestions --flycomp-output "$FLYCOMP_DIR" --use-flycomp true --sort-order mtime
 unset FLYCOMP_DIR
 fi
 fi
