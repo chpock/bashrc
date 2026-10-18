@@ -3518,14 +3518,21 @@ if _isnot in-container; then
 
             flyline set-cursor --backend flyline --style "#52ad70" --effect fade --effect-easing in-out-sine --interpolate-easing out-elastic --interpolate none
 
-            # Remove `#idx=42462 7sec` from inline suggestions (make this as black on black)
-            flyline set-style inline-suggestion="black on black"
+            # Remove `#idx=42462 7sec` from inline suggestions
+            flyline editor --show-inline-history-metadata false
 
             # Disable mouse
             flyline mouse --mode disabled
 
             # Don't use fuzzy match for suggestions
             flyline suggestions set-fuzzy-mode none
+
+            # Enable suggestion but without a popup
+            flyline suggestions --auto-suggest false --auto-suggest-inline true
+
+            # Don't use useless animations and other easter eggs
+            # https://github.com/HalFrgrd/flyline/pull/830
+            flyline --enable-easter-eggs false
 
             if _has flycomp; then
                 FLYCOMP_DIR="$IAM_HOME/tools/bash_completion/flycomp"

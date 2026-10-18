@@ -516,7 +516,7 @@ EOF
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
 LOCAL_TOOLS_FILE_HASH=EEEA22EC
-BASHRC_FILE_HASH=5964CD80
+BASHRC_FILE_HASH=17EA2256
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -1871,11 +1871,11 @@ MEM_FREE=$(( MEM_FREE * 4096 / 1024 / 1024 ))
 fi
 if [ -n "$MEM_TOTAL" ]; then
 _showinfo "RAM" "$MEM_TOTAL" "$MEM_FREE"
-EOF
-cat <<'EOF' >> "$IAM_HOME/bashrc"
 if [ "$SWAP_TOTAL" -eq 0 ]; then
 cprintf -- "Swap      : ~y~%s" "Not installed"
 else
+EOF
+cat <<'EOF' >> "$IAM_HOME/bashrc"
 _showinfo "Swap" "$SWAP_TOTAL" "$SWAP_FREE"
 fi
 sep "Memory"
@@ -2999,9 +2999,11 @@ _install_get_tool_exe -v FLYLINE_LIB flyline
 if [ -n "$FLYLINE_LIB" ]; then
 enable -f "$FLYLINE_LIB" flyline
 flyline set-cursor --backend flyline --style "#52ad70" --effect fade --effect-easing in-out-sine --interpolate-easing out-elastic --interpolate none
-flyline set-style inline-suggestion="black on black"
+flyline editor --show-inline-history-metadata false
 flyline mouse --mode disabled
 flyline suggestions set-fuzzy-mode none
+flyline suggestions --auto-suggest false --auto-suggest-inline true
+flyline --enable-easter-eggs false
 if _has flycomp; then
 FLYCOMP_DIR="$IAM_HOME/tools/bash_completion/flycomp"
 mkdir -p "$FLYCOMP_DIR"
