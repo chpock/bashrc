@@ -516,7 +516,7 @@ EOF
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
 LOCAL_TOOLS_FILE_HASH=6ED922D2
-BASHRC_FILE_HASH=82012368
+BASHRC_FILE_HASH=8AF601DF
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -1872,10 +1872,10 @@ fi
 if [ -n "$MEM_TOTAL" ]; then
 _showinfo "RAM" "$MEM_TOTAL" "$MEM_FREE"
 if [ "$SWAP_TOTAL" -eq 0 ]; then
-cprintf -- "Swap      : ~y~%s" "Not installed"
-else
 EOF
 cat <<'EOF' >> "$IAM_HOME/bashrc"
+cprintf -- "Swap      : ~y~%s" "Not installed"
+else
 _showinfo "Swap" "$SWAP_TOTAL" "$SWAP_FREE"
 fi
 sep "Memory"
@@ -2580,13 +2580,9 @@ cprintf -A MSG "key~K~: $KEY~K~; ~d~secret~K~: $SECRET~K~; ~d~session~K~: $SESSI
 || cprintf -a MSG '~K~; ~y~inactive-profile~K~: ~g~%s' "$AWS_PROFILE_INACTIVE"
 fi
 cprintf -a MSG '~K~; ~d~region~K~:'
-local REGION
-if [ -n "$AWS_PROFILE" ] && [ -z "$AWS_DEFAULT_REGION" ]; then
-REGION="$(command aws configure list 2>/dev/null | awk '$1 == "region" { print $2 }')"
-[ "$REGION" != "<not" ] || unset REGION
-fi
-if [ -z "$REGION" ] && [ -n "$AWS_DEFAULT_REGION" ]; then
-REGION="$AWS_DEFAULT_REGION"
+local REGION="${AWS_REGION:-$AWS_DEFAULT_REGION}"
+if [ -z "$REGION" ] && [ -n "$AWS_PROFILE" ]; then
+REGION="$(command aws configure get region 2>/dev/null)" || unset REGION
 fi
 [ -n "$REGION" ] \
 && cprintf -A MSG '~c~%s' "$REGION" \

@@ -2888,14 +2888,9 @@ __aws_status() {
 
     cprintf -a MSG '~K~; ~d~region~K~:'
 
-    local REGION
-    if [ -n "$AWS_PROFILE" ] && [ -z "$AWS_DEFAULT_REGION" ]; then
-        REGION="$(command aws configure list 2>/dev/null | awk '$1 == "region" { print $2 }')"
-        [ "$REGION" != "<not" ] || unset REGION
-    fi
-
-    if [ -z "$REGION" ] && [ -n "$AWS_DEFAULT_REGION" ]; then
-        REGION="$AWS_DEFAULT_REGION"
+    local REGION="${AWS_REGION:-$AWS_DEFAULT_REGION}"
+    if [ -z "$REGION" ] && [ -n "$AWS_PROFILE" ]; then
+        REGION="$(command aws configure get region 2>/dev/null)" || unset REGION
     fi
 
     # Disable: Note that A && B || C is not if-then-else. C may run when A is true. [SC2015]
