@@ -6,7 +6,7 @@ __INSTALL_VERSION="
   flyline:libflyline.so 1.10.0  auto
   flycomp       1.1.2  auto
   shellcheck    0.10.0
-  awscli:aws    2.24.26
+  awscli:aws    2.38.1
   kubectl       1.32.3
   helm          3.18.6
   nelm          1.22.0
