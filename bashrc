@@ -516,7 +516,7 @@ EOF
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
 LOCAL_TOOLS_FILE_HASH=6ED922D2
-BASHRC_FILE_HASH=8AF601DF
+BASHRC_FILE_HASH=F8654A3F
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -1872,8 +1872,6 @@ fi
 if [ -n "$MEM_TOTAL" ]; then
 _showinfo "RAM" "$MEM_TOTAL" "$MEM_FREE"
 if [ "$SWAP_TOTAL" -eq 0 ]; then
-EOF
-cat <<'EOF' >> "$IAM_HOME/bashrc"
 cprintf -- "Swap      : ~y~%s" "Not installed"
 else
 _showinfo "Swap" "$SWAP_TOTAL" "$SWAP_FREE"
@@ -1882,6 +1880,8 @@ sep "Memory"
 fi
 fi
 if ! _is in-container && ! _is sudo; then
+EOF
+cat <<'EOF' >> "$IAM_HOME/bashrc"
 if _is linux; then
 while IFS=$' \t\r\n' read -r a b c d _ f; do
 [ "$f" = "/dev/shm" ] && continue
@@ -2607,7 +2607,12 @@ return
 fi
 [ -n "$_PS1_TMUX_CURRENT_WINDOW" ] || _PS1_TMUX_CURRENT_WINDOW="$(command tmux display-message -p -t "$TMUX_PANE" '#{window_id}')"
 if [ -z "$_PS1_TMUX_CURRENT_STATUS" ]; then
-_PS1_TMUX_CURRENT_STATUS="$(command tmux list-panes -t "$_PS1_TMUX_CURRENT_WINDOW" -F '#{pane_pid} #{pane_id}' | grep '^0 ' | awk '{print $2}' | tail -n 1)"
+_PS1_TMUX_CURRENT_STATUS="$(command tmux list-panes -t "$_PS1_TMUX_CURRENT_WINDOW" \
+-F '#{pane_pid}|#{pane_dead}|#{pane_tty}|#{pane_id}' \
+| awk -F '|' '
+$1 == "0" || ($1 == "" && $2 == "0" && $3 == "") { pane = $4 }
+END { if (pane != "") print pane }
+')"
 if [ -z "$_PS1_TMUX_CURRENT_STATUS" ]; then
 local TMUX_HACK=''
 _isnot tmux_3_7 || TMUX_HACK='-E'

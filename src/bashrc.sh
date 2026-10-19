@@ -2929,10 +2929,34 @@ _ps1_show_status() {
     fi
     [ -n "$_PS1_TMUX_CURRENT_WINDOW" ] || _PS1_TMUX_CURRENT_WINDOW="$(command tmux display-message -p -t "$TMUX_PANE" '#{window_id}')"
     if [ -z "$_PS1_TMUX_CURRENT_STATUS" ]; then
-        # we may have a status pane and lost its ID after reload.
-        # #{pane_dead} doesn't work in tmux 3.0a. Status pane is not marked as dead.
-        # However, #{pane_pid} works everywhere. Empty pane has 0 pane_pid.
-        _PS1_TMUX_CURRENT_STATUS="$(command tmux list-panes -t "$_PS1_TMUX_CURRENT_WINDOW" -F '#{pane_pid} #{pane_id}' | grep '^0 ' | awk '{print $2}' | tail -n 1)"
+        # Recover an existing empty status pane if its cached ID was lost after reload.
+        # An empty pane has no process; a dead pane had a process that exited and was
+        # kept by remain-on-exit. Only the former accepts display-message -I input.
+        # Neither pane_dead nor pane_pid alone identifies our status panes reliably:
+        # - In older versions supporting empty panes, such as tmux 3.0a, an empty pane
+        #   has pane_pid=0 and pane_dead=0. pane_dead is supported, but looking for 1
+        #   would miss the status pane and could select a retained dead process instead.
+        # - Since tmux 3.8, pane_pid is absent whenever the terminal fd is closed,
+        #   for both empty and dead panes. pane_dead=1 excludes exited processes,
+        #   but it can still be 0 after terminal closure and before exit status arrives.
+        # - pane_tty retains the terminal name even after closure. Our freshly split
+        #   empty status panes never had a terminal, so their pane_tty is empty.
+        # Keep the raw PID: normalizing an absent PID to 0 would lose that distinction.
+        # Accept PID 0 (older tmux), or an absent PID with pane_dead=0 AND empty pane_tty
+        # (newer tmux). This excludes process panes even before their exit status arrives.
+        # This detects the status panes created below, not every possible empty pane:
+        # respawning a former process pane as empty can retain its old terminal name.
+        # tmux 2.4 predates empty panes and display-message -I; this detector does not
+        # add support for this status-pane mechanism to versions lacking those features.
+        # Use a delimiter so an absent PID does not shift the fields. Preserve the
+        # previous choice of the last matching pane. No match prints nothing and is
+        # still successful under pipefail, so the creation branch below can run.
+        _PS1_TMUX_CURRENT_STATUS="$(command tmux list-panes -t "$_PS1_TMUX_CURRENT_WINDOW" \
+            -F '#{pane_pid}|#{pane_dead}|#{pane_tty}|#{pane_id}' \
+            | awk -F '|' '
+                $1 == "0" || ($1 == "" && $2 == "0" && $3 == "") { pane = $4 }
+                END { if (pane != "") print pane }
+            ')"
         # there are no panes, let's create one
         #
         # Before tmux 3.7, we had to create empty panes by passing an empty command. In tmux 3.7,
