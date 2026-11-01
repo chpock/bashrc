@@ -514,9 +514,9 @@ endif
 EOF
 
 # avoid issue with some overflow when the file is more than 65536 bytes
-cat <<'EOF' > "$IAM_HOME/bashrc"
+cat <<'EOF' > "$IAM_HOME/bashrc.$$"
 LOCAL_TOOLS_FILE_HASH=6ED922D2
-BASHRC_FILE_HASH=281B94F3
+BASHRC_FILE_HASH=2A7BBC47
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -1526,7 +1526,8 @@ printf '%s\n' \
 "tic \"\$IAM_HOME/terminfo/.terminfo\" >/dev/null 2>&1 || true" \
 "fi" \
 "cat >\"\$IAM_HOME/vimrc\" <<'EOF'" "$(cat "$IAM_HOME/vimrc")" "EOF" \
-"cat >\"\$IAM_HOME/bashrc\" <<'EOF'" "$(cat "$IAM_HOME/bashrc")" "EOF" \
+"cat >\"\$IAM_HOME/bashrc.\$\$\" <<'EOF'" "$(cat "$IAM_HOME/bashrc")" "EOF" \
+"mv -f \"\$IAM_HOME/bashrc.\$\$\" \"\$IAM_HOME/bashrc\"" \
 "cat >\"\$IAM_HOME/shellrc\" <<'EOF'" "$(cat "$IAM_HOME/shellrc")" "EOF" \
 "cat >\"\$IAM_HOME/local_tools\" <<'EOF'" "$(cat "$IAM_HOME/local_tools" 2>/dev/null || :)" "EOF" \
 "cat >\"\$HOME/.tclshrc\" <<'EOF'" "$(cat "$HOME/.tclshrc")" "EOF" \
@@ -1882,7 +1883,7 @@ fi
 fi
 if ! _is in-container && ! _is sudo; then
 EOF
-cat <<'EOF' >> "$IAM_HOME/bashrc"
+cat <<'EOF' >> "$IAM_HOME/bashrc.$$"
 if _is linux; then
 while IFS=$' \t\r\n' read -r a b c d _ f; do
 [ "$f" = "/dev/shm" ] && continue
@@ -2404,7 +2405,8 @@ tic \"\$IAM_HOME/terminfo/.terminfo\" && \
 echo \"$(cat "${IAM_HOME}"/vimrc | sed 's/\([$"\`\\]\)/\\\1/g')\">\"\$IAM_HOME/vimrc\" && \
 echo \"$(cat "${IAM_HOME}"/local_tools | sed 's/\([$"\`\\]\)/\\\1/g')\">\"\$IAM_HOME/local_tools\" && \
 echo \"$(cat "${HOME}"/.tclshrc | sed 's/\([$"\`\\]\)/\\\1/g')\">\"\$HOME/.tclshrc\" && \
-echo \"$(cat "${IAM_HOME}"/bashrc | sed 's/\([$"\`\\]\)/\\\1/g')\">\"\$IAM_HOME/bashrc\"" \
+echo \"$(cat "${IAM_HOME}"/bashrc | sed 's/\([$"\`\\]\)/\\\1/g')\">\"\$IAM_HOME/bashrc.\$\$\" && \
+mv -f \"\$IAM_HOME/bashrc.\$\$\" \"\$IAM_HOME/bashrc\"" \
 | wsl -d Ubuntu
 wsl -d Ubuntu /bin/bash -ci "IAM=\"$IAM\" && export IAM && \
 SSH_PUB_KEY=\"$SSH_PUB_KEY\" && export SSH_PUB_KEY && \
@@ -3093,6 +3095,7 @@ fi
 fi
 fi
 EOF
+mv -f "$IAM_HOME/bashrc.$$" "$IAM_HOME/bashrc"
 
 cat <<'EOF' > "$IAM_HOME/shellrc"
 if [ -x /bin/bash ]; then

@@ -1335,7 +1335,8 @@ __magic_ssh() {
             "tic \"\$IAM_HOME/terminfo/.terminfo\" >/dev/null 2>&1 || true" \
             "fi" \
             "cat >\"\$IAM_HOME/vimrc\" <<'EOF'" "$(cat "$IAM_HOME/vimrc")" "EOF" \
-            "cat >\"\$IAM_HOME/bashrc\" <<'EOF'" "$(cat "$IAM_HOME/bashrc")" "EOF" \
+            "cat >\"\$IAM_HOME/bashrc.\$\$\" <<'EOF'" "$(cat "$IAM_HOME/bashrc")" "EOF" \
+            "mv -f \"\$IAM_HOME/bashrc.\$\$\" \"\$IAM_HOME/bashrc\"" \
             "cat >\"\$IAM_HOME/shellrc\" <<'EOF'" "$(cat "$IAM_HOME/shellrc")" "EOF" \
             "cat >\"\$IAM_HOME/local_tools\" <<'EOF'" "$(cat "$IAM_HOME/local_tools" 2>/dev/null || :)" "EOF" \
             "cat >\"\$HOME/.tclshrc\" <<'EOF'" "$(cat "$HOME/.tclshrc")" "EOF" \
@@ -2620,7 +2621,8 @@ wsl() {
               echo \"$(cat "${IAM_HOME}"/vimrc | sed 's/\([$"\`\\]\)/\\\1/g')\">\"\$IAM_HOME/vimrc\" && \
               echo \"$(cat "${IAM_HOME}"/local_tools | sed 's/\([$"\`\\]\)/\\\1/g')\">\"\$IAM_HOME/local_tools\" && \
               echo \"$(cat "${HOME}"/.tclshrc | sed 's/\([$"\`\\]\)/\\\1/g')\">\"\$HOME/.tclshrc\" && \
-              echo \"$(cat "${IAM_HOME}"/bashrc | sed 's/\([$"\`\\]\)/\\\1/g')\">\"\$IAM_HOME/bashrc\"" \
+              echo \"$(cat "${IAM_HOME}"/bashrc | sed 's/\([$"\`\\]\)/\\\1/g')\">\"\$IAM_HOME/bashrc.\$\$\" && \
+              mv -f \"\$IAM_HOME/bashrc.\$\$\" \"\$IAM_HOME/bashrc\"" \
         | wsl -d Ubuntu
 
         wsl -d Ubuntu /bin/bash -ci "IAM=\"$IAM\" && export IAM && \

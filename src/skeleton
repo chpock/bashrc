@@ -26,14 +26,15 @@ cat <<'EOF' > "$IAM_HOME/vimrc"
 EOF
 
 # avoid issue with some overflow when the file is more than 65536 bytes
-cat <<'EOF' > "$IAM_HOME/bashrc"
+cat <<'EOF' > "$IAM_HOME/bashrc.$$"
 @setHash LOCAL_TOOLS_FILE_HASH REPO_ROOT/tools.list
 @setHash BASHRC_FILE_HASH REPO_ROOT/src/bashrc.sh
 @include part 0 bashrc.sh
 EOF
-cat <<'EOF' >> "$IAM_HOME/bashrc"
+cat <<'EOF' >> "$IAM_HOME/bashrc.$$"
 @include part 1 bashrc.sh
 EOF
+mv -f "$IAM_HOME/bashrc.$$" "$IAM_HOME/bashrc"
 
 cat <<'EOF' > "$IAM_HOME/shellrc"
 @include shellrc.sh
