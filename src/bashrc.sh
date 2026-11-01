@@ -753,6 +753,9 @@ if [ -f ~/gcloud/google-cloud-sdk/path.bash.inc ]; then
     . ~/gcloud/google-cloud-sdk/path.bash.inc
 fi
 
+# Cortexkit: https://github.com/cortexkit/subconscious/blob/8652c52164b4b948387b8ac4e40d2d83aeb62fa5/scripts/install/install.sh#L608
+[ ! -d "$HOME/.local/share/cortexkit/cmd" ] || _addpath "$HOME/.local/share/cortexkit/cmd"
+
 # Add user PATH in cygwin
 # https://stackoverflow.com/a/51430239
 for fn in \

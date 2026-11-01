@@ -516,7 +516,7 @@ EOF
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc"
 LOCAL_TOOLS_FILE_HASH=6ED922D2
-BASHRC_FILE_HASH=F8654A3F
+BASHRC_FILE_HASH=281B94F3
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -1086,6 +1086,7 @@ fi
 if [ -f ~/gcloud/google-cloud-sdk/path.bash.inc ]; then
 . ~/gcloud/google-cloud-sdk/path.bash.inc
 fi
+[ ! -d "$HOME/.local/share/cortexkit/cmd" ] || _addpath "$HOME/.local/share/cortexkit/cmd"
 for fn in \
 "/proc/registry/HKEY_CURRENT_USER/Environment/Path" \
 "/proc/registry/HKEY_LOCAL_MACHINE/SYSTEM/CurrentControlSet/Control/Session Manager/Environment/Path"
