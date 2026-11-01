@@ -3253,9 +3253,10 @@ function promptcmd () {
     #    PS1="${PS1}\[${COLOR_YELLOW}\][stp:${STPJBS}]\[${COLOR_DEFAULT}\]"
     #fi
 
-    if [ -n "$_BASHRC_STAMP_FILE" ] && [ ! -e "$_BASHRC_STAMP_FILE" ]; then
-        cprintf -a PS1 "~K~[~r~bashrc is obsolete~K~]"
-    fi
+    # PROMPT_COMMAND reloads an outdated bashrc instead of displaying this warning.
+    # if [ -n "$_BASHRC_STAMP_FILE" ] && [ ! -e "$_BASHRC_STAMP_FILE" ]; then
+    #     cprintf -a PS1 "~K~[~r~bashrc is obsolete~K~]"
+    # fi
 
     # Disable: Note that A && B || C is not if-then-else. C may run when A is true. [SC2015]
     # shellcheck disable=SC2015
@@ -3309,7 +3310,18 @@ __cleanup_trap() {
 #PROMPT_COMMAND="promptcmd \$?"
 #PROMPT_COMMAND="__debug_trap off \$? && __EC=0 || __EC=\$?; promptcmd \$__EC; unset __EC; __debug_trap on"
 #PROMPT_COMMAND="__EC=\$?; set -x; promptcmd \$__EC; set +x; unset _EC"
-PROMPT_COMMAND="{ __debug_trap off \$? && __EC=0 || __EC=\$?; promptcmd \$__EC; unset __EC; __debug_trap on; } 2>/dev/null"
+
+#PROMPT_COMMAND="{ __debug_trap off \$? && __EC=0 || __EC=\$?; promptcmd \$__EC; unset __EC; __debug_trap on; } 2>/dev/null"
+PROMPT_COMMAND='
+{ __debug_trap off $? && __EC=0 || __EC=$?; promptcmd "$__EC"; unset __EC; } 2>/dev/null
+
+if [ -n "$_BASHRC_STAMP_FILE" ] && [ ! -e "$_BASHRC_STAMP_FILE" ]; then
+    _info "The current bashrc is out of date; reloading this shell session."
+    reload current
+fi
+
+__debug_trap on
+'
 
 #trap __debug_trap DEBUG
 trap '{ __debug_trap; } 2>/dev/null' DEBUG

@@ -516,7 +516,7 @@ EOF
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc.$$"
 LOCAL_TOOLS_FILE_HASH=AEDA22D5
-BASHRC_FILE_HASH=C80E287B
+BASHRC_FILE_HASH=1CF9A07D
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -1882,10 +1882,10 @@ sep "Memory"
 fi
 fi
 if ! _is in-container && ! _is sudo; then
-EOF
-cat <<'EOF' >> "$IAM_HOME/bashrc.$$"
 if _is linux; then
 while IFS=$' \t\r\n' read -r a b c d _ f; do
+EOF
+cat <<'EOF' >> "$IAM_HOME/bashrc.$$"
 [ "$f" = "/dev/shm" ] && continue
 [ "$f" = "/dev" ]     && continue
 [ "$f" = "/run" ]     && continue
@@ -2785,9 +2785,6 @@ _homify -v PWD_MSG "$PWD"
 && PWD_COLOR="~g~" \
 || PWD_COLOR="~r~"
 cprintf -a PS1 "~K~:${PWD_COLOR}%s~K~]" "$PWD_MSG"
-if [ -n "$_BASHRC_STAMP_FILE" ] && [ ! -e "$_BASHRC_STAMP_FILE" ]; then
-cprintf -a PS1 "~K~[~r~bashrc is obsolete~K~]"
-fi
 [ "$UID" -eq 0 ] \
 && cprintf -a PS1 '~r~# ~d~' \
 || cprintf -a PS1 '~136~$ ~d~'
@@ -2815,7 +2812,14 @@ local RC=$?
 echo > "$_SHELL_SESSION_DELETED_FILE"
 exit $RC
 }
-PROMPT_COMMAND="{ __debug_trap off \$? && __EC=0 || __EC=\$?; promptcmd \$__EC; unset __EC; __debug_trap on; } 2>/dev/null"
+PROMPT_COMMAND='
+{ __debug_trap off $? && __EC=0 || __EC=$?; promptcmd "$__EC"; unset __EC; } 2>/dev/null
+if [ -n "$_BASHRC_STAMP_FILE" ] && [ ! -e "$_BASHRC_STAMP_FILE" ]; then
+_info "The current bashrc is out of date; reloading this shell session."
+reload current
+fi
+__debug_trap on
+'
 trap '{ __debug_trap; } 2>/dev/null' DEBUG
 trap '__cleanup_trap' EXIT
 if _is hpux; then
