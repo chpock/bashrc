@@ -1,7 +1,9 @@
 #!/bin/bash
 
+# Skip this tmux integration in Herdr, including automatic session restoration.
+# Callers use __TMUX_FUNCTIONS_AVAILABLE to check whether these helpers were loaded.
 
-_has tmux || return
+_has tmux && _isnot herdr || return 0
 
 ,tmux() {
     local CMD="$1"

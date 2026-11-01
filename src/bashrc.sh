@@ -3568,37 +3568,42 @@ if _isnot in-container; then
         unset FLYLINE_LIB
     fi
 
-    _CLEANUP_STAMP="$IAM_HOME/session/cleanup-stamp"
-    # Run cleanup at most once every twelve hours. Update the stamp before
-    # starting the background job so concurrent bootstraps normally skip it.
-    # A rare race can still start duplicate cleanups, which is harmless.
-    if [ ! -e "$_CLEANUP_STAMP" ] \
-        || [ -n "$(find "$_CLEANUP_STAMP" -mmin +720 -print 2>/dev/null)" ]; then
-        echo > "$_CLEANUP_STAMP"
-        (
-            [ -n "$__TMUX_FUNCTIONS_AVAILABLE" ] && SHELL_ID_LIST="$(,tmux get-shell-session-ids)" || SHELL_ID_LIST=
-            # Search for explicit deletion markers instead of searching for
-            # session directories themselves. __cleanup_trap keeps a directory
-            # and writes this marker when its shell exits; bootstrap removes the
-            # marker when the session ID is reused, so its presence identifies a
-            # session directory that is no longer active.
-            # `-type f -name deleted` selects only these marker files, while
-            # `-mmin +360` selects markers older than six hours and gives a
-            # recently exited shell enough time to be restored. `-print` passes
-            # each marker path to the loop, which derives the directory and
-            # checks its shell ID before deciding whether to remove it.
-            while IFS= read -r DELETED_FILE; do
-                SHELL_DIR="${DELETED_FILE%/deleted}"
-                SHELL_ID="${SHELL_DIR##*/id-}"
-                case " $SHELL_ID_LIST " in
-                    *" $SHELL_ID "*) ;;
-                    *) rm -rf "$SHELL_DIR" ;;
-                esac
-            done < <(find "$IAM_HOME/session/shell" -type f -name deleted -mmin +360 -print)
-        ) >/dev/null 2>&1 &
-        disown "$!" 2>/dev/null || :
+    # Skip cleanup when tmux is installed but its helper functions are unavailable
+    # (for example, in a Herdr pane). Without them, cleanup cannot identify shell
+    # sessions referenced by tmux backups.
+    if _hasnot tmux || [ -n "$__TMUX_FUNCTIONS_AVAILABLE" ]; then
+        _CLEANUP_STAMP="$IAM_HOME/session/cleanup-stamp"
+        # Run cleanup at most once every twelve hours. Update the stamp before
+        # starting the background job so concurrent bootstraps normally skip it.
+        # A rare race can still start duplicate cleanups, which is harmless.
+        if [ ! -e "$_CLEANUP_STAMP" ] \
+            || [ -n "$(find "$_CLEANUP_STAMP" -mmin +720 -print 2>/dev/null)" ]; then
+            echo > "$_CLEANUP_STAMP"
+            (
+                [ -n "$__TMUX_FUNCTIONS_AVAILABLE" ] && SHELL_ID_LIST="$(,tmux get-shell-session-ids)" || SHELL_ID_LIST=
+                # Search for explicit deletion markers instead of searching for
+                # session directories themselves. __cleanup_trap keeps a directory
+                # and writes this marker when its shell exits; bootstrap removes the
+                # marker when the session ID is reused, so its presence identifies a
+                # session directory that is no longer active.
+                # `-type f -name deleted` selects only these marker files, while
+                # `-mmin +360` selects markers older than six hours and gives a
+                # recently exited shell enough time to be restored. `-print` passes
+                # each marker path to the loop, which derives the directory and
+                # checks its shell ID before deciding whether to remove it.
+                while IFS= read -r DELETED_FILE; do
+                    SHELL_DIR="${DELETED_FILE%/deleted}"
+                    SHELL_ID="${SHELL_DIR##*/id-}"
+                    case " $SHELL_ID_LIST " in
+                        *" $SHELL_ID "*) ;;
+                        *) rm -rf "$SHELL_DIR" ;;
+                    esac
+                done < <(find "$IAM_HOME/session/shell" -type f -name deleted -mmin +360 -print)
+            ) >/dev/null 2>&1 &
+            disown "$!" 2>/dev/null || :
+        fi
+        unset _CLEANUP_STAMP
     fi
-    unset _CLEANUP_STAMP
 fi
 
 if _isnot tmux && _isnot herdr; then

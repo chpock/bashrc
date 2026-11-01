@@ -515,8 +515,8 @@ EOF
 
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc.$$"
-LOCAL_TOOLS_FILE_HASH=6ED922D2
-BASHRC_FILE_HASH=2A7BBC47
+LOCAL_TOOLS_FILE_HASH=AEDA22D5
+BASHRC_FILE_HASH=C80E287B
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -3017,6 +3017,7 @@ fi
 fi
 unset FLYLINE_LIB
 fi
+if _hasnot tmux || [ -n "$__TMUX_FUNCTIONS_AVAILABLE" ]; then
 _CLEANUP_STAMP="$IAM_HOME/session/cleanup-stamp"
 if [ ! -e "$_CLEANUP_STAMP" ] \
 || [ -n "$(find "$_CLEANUP_STAMP" -mmin +720 -print 2>/dev/null)" ]; then
@@ -3035,6 +3036,7 @@ done < <(find "$IAM_HOME/session/shell" -type f -name deleted -mmin +360 -print)
 disown "$!" 2>/dev/null || :
 fi
 unset _CLEANUP_STAMP
+fi
 fi
 if _isnot tmux && _isnot herdr; then
 if _is wsl; then
