@@ -516,7 +516,7 @@ EOF
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc.$$"
 LOCAL_TOOLS_FILE_HASH=997E5544
-BASHRC_FILE_HASH=1CB2B839
+BASHRC_FILE_HASH=C21CBC2D
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -2039,7 +2039,7 @@ _info "Generating bash completions for upkg..."
 upkg generate bash-completion >"$IAM_HOME/tools/bash_completion/upkg.bash" 2>/dev/null
 fi
 for i in "$IAM_HOME/tools/bash_completion"/*.bash; do
-source "$i"
+[ ! -e "$i" ] || source "$i"
 done
 unset i
 if [ -f ~/gcloud/google-cloud-sdk/completion.bash.inc ]; then

@@ -2065,7 +2065,7 @@ fi
 
 for i in "$IAM_HOME/tools/bash_completion"/*.bash; do
     # shellcheck source=/dev/null
-    source "$i"
+    [ ! -e "$i" ] || source "$i"
 done
 unset i
 
