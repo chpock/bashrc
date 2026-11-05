@@ -256,6 +256,18 @@ _glob_match() {
     eval "case \"\$2\" in ${1// /\\ }) return 0;; *) return 1;; esac"
 }
 
+_save_to() {
+    local _FN="$1" _TMP_FN
+    shift
+    _TMP_FN="$(mktemp)"
+    if "$@" > "$_TMP_FN"; then
+        ! mv -f "$_TMP_FN" "$_FN" || return 0
+        _err "failed to save stdout to '%s'" "$_FN"
+    fi
+    rm -f "$_TMP_FN"
+    return 1
+}
+
 # Returns the size of the file(s) in bytes.
 # Use GNU stat with "-c '%s'" if available.
 # Use BSD stat with "-f '%z'" is available. BSD stat has the -F option, which is not present in GNU stat.
@@ -1987,45 +1999,51 @@ mkdir -p "$IAM_HOME/tools/bash_completion"
 
 if _has_function _init_completion; then
 
-    if _has kubectl && [ ! -f "$IAM_HOME/tools/bash_completion/kubectl.completion.bash" ]; then
+    if _has_executable kubectl && [ ! -f "$IAM_HOME/tools/bash_completion/kubectl.completion.bash" ]; then
         _info "Generating bash completions for kubectl..."
-        kubectl completion bash >"$IAM_HOME/tools/bash_completion/kubectl.completion.bash" 2>/dev/null
+        _save_to "$IAM_HOME/tools/bash_completion/kubectl.completion.bash" \
+            kubectl completion bash 2>/dev/null
     fi
 
-    if _has eksctl && [ ! -f "$IAM_HOME/tools/bash_completion/eksctl.completion.bash" ]; then
+    if _has_executable eksctl && [ ! -f "$IAM_HOME/tools/bash_completion/eksctl.completion.bash" ]; then
         _info "Generating bash completions for eksctl..."
-        eksctl completion bash >"$IAM_HOME/tools/bash_completion/eksctl.completion.bash" 2>/dev/null
+        _save_to "$IAM_HOME/tools/bash_completion/eksctl.completion.bash" \
+            eksctl completion bash 2>/dev/null
     fi
 
-    if _has helm && [ ! -f "$IAM_HOME/tools/bash_completion/helm.completion.bash" ]; then
+    if _has_executable helm && [ ! -f "$IAM_HOME/tools/bash_completion/helm.completion.bash" ]; then
         _info "Generating bash completions for helm..."
-        helm completion bash >"$IAM_HOME/tools/bash_completion/helm.completion.bash" 2>/dev/null
+        _save_to "$IAM_HOME/tools/bash_completion/helm.completion.bash" \
+            helm completion bash 2>/dev/null
     fi
 
-    if _has oc && [ ! -f "$IAM_HOME/tools/bash_completion/oc.completion.bash" ]; then
+    if _has_executable oc && [ ! -f "$IAM_HOME/tools/bash_completion/oc.completion.bash" ]; then
         _info "Generating bash completions for OpenShift..."
-        oc completion bash >"$IAM_HOME/tools/bash_completion/oc.completion.bash" 2>/dev/null
+        _save_to "$IAM_HOME/tools/bash_completion/oc.completion.bash" \
+            oc completion bash 2>/dev/null
     fi
 
-    if _has istioctl && [ ! -f "$IAM_HOME/tools/bash_completion/istioctl.completion.bash" ]; then
+    if _has_executable istioctl && [ ! -f "$IAM_HOME/tools/bash_completion/istioctl.completion.bash" ]; then
         _info "Generating bash completions for istioctl..."
-        istioctl completion bash >"$IAM_HOME/tools/bash_completion/istioctl.completion.bash" 2>/dev/null
+        _save_to "$IAM_HOME/tools/bash_completion/istioctl.completion.bash" \
+            istioctl completion bash 2>/dev/null
     fi
 
     # This only available for bazel 8.4.0+
     # https://github.com/bazelbuild/bazel/pull/26501
-    if _has bazel && [ ! -f "$IAM_HOME/tools/bash_completion/bazel.completion.bash" ]; then
+    if _has_executable bazel && [ ! -f "$IAM_HOME/tools/bash_completion/bazel.completion.bash" ]; then
         _info "Generating bash completions for bazel..."
-        bazel help completion bash >"$IAM_HOME/tools/bash_completion/bazel.completion.bash" 2>/dev/null
+        _save_to "$IAM_HOME/tools/bash_completion/bazel.completion.bash" \
+            bazel help completion bash 2>/dev/null
     fi
 
 else
     _warn 'The original bash completion package is not installed on this machine. Some of the completions may not be available.\n'
 fi
 
-if _has kpexec && [ ! -f "$IAM_HOME/tools/bash_completion/kpexec.completion.bash" ];  then
+if _has_executable kpexec && [ ! -f "$IAM_HOME/tools/bash_completion/kpexec.completion.bash" ];  then
     _info "Generating bash completions for kpexec..."
-    if kpexec --completion bash >"$IAM_HOME/tools/bash_completion/kpexec.completion.bash" 2>/dev/null; then
+    if _save_to "$IAM_HOME/tools/bash_completion/kpexec.completion.bash" kpexec --completion bash 2>/dev/null; then
         # Disable: Expressions don't expand in single quotes, use double quotes for that. [SC2016]
         # shellcheck disable=SC2016
         echo '
@@ -2038,29 +2056,41 @@ if _has kpexec && [ ! -f "$IAM_HOME/tools/bash_completion/kpexec.completion.bash
     fi
 fi
 
-if _has nelm && [ ! -f "$IAM_HOME/tools/bash_completion/nelm.completion.bash" ];  then
+if _has_executable nelm && [ ! -f "$IAM_HOME/tools/bash_completion/nelm.completion.bash" ];  then
     _info "Generating bash completions for nelm..."
-    nelm completion bash >"$IAM_HOME/tools/bash_completion/nelm.completion.bash" 2>/dev/null
+    _save_to "$IAM_HOME/tools/bash_completion/nelm.completion.bash" \
+        nelm completion bash 2>/dev/null
 fi
 
-if [ ! -f "$IAM_HOME/tools/bash_completion/pip.completion.bash" ]; then
+_PIP_COMP="$IAM_HOME/tools/bash_completion/pip.completion.bash"
+if [ ! -f "$_PIP_COMP" ]; then
+    _PIP_COMP_TEMP="${_PIP_COMP}.temp"
     # Remove '\r' here, as Python can be compiled for Windows, and pip in
     # this case creates scripts with CRLF new lines.
-    if _has pip3; then
+    if _has_executable pip3; then
         _info "Generating bash completions for pip3..."
         # pip3 adds completions only for 'pip3' command, but we have 'pip' alias for it.
         # Let's add it, but only if 'pip3 completion --bash' was successful.
-        pip3 completion --bash | tr -d '\r' >"$IAM_HOME/tools/bash_completion/pip.completion.bash" 2>/dev/null && \
-            echo 'complete -o default -F _pip_completion pip' >>"$IAM_HOME/tools/bash_completion/pip.completion.bash"
-    elif _has pip; then
+        _save_to "$_PIP_COMP_TEMP" \
+            pip3 completion --bash 2>/dev/null && \
+            echo 'complete -o default -F _pip_completion pip' >> "$_PIP_COMP_TEMP"
+    elif _has_executable pip; then
         _info "Generating bash completions for pip..."
-        pip completion --bash | tr -d '\r' >"$IAM_HOME/tools/bash_completion/pip.completion.bash" 2>/dev/null
+        _save_to "$_PIP_COMP_TEMP" \
+            pip completion --bash 2>/dev/null
     fi
+    if [ -f "$_PIP_COMP_TEMP" ]; then
+        tr -d '\r' < "$_PIP_COMP_TEMP" > "$_PIP_COMP"
+        rm -f "$_PIP_COMP_TEMP"
+    fi
+    unset _PIP_COMP_TEMP
 fi
+unset _PIP_COMP
 
-if _has upkg && [ ! -f "$IAM_HOME/tools/bash_completion/upkg.bash" ] && upkg supported silent; then
+if _has_executable upkg && [ ! -f "$IAM_HOME/tools/bash_completion/upkg.bash" ] && upkg supported silent; then
     _info "Generating bash completions for upkg..."
-    upkg generate bash-completion >"$IAM_HOME/tools/bash_completion/upkg.bash" 2>/dev/null
+    _save_to "$IAM_HOME/tools/bash_completion/upkg.bash" \
+        upkg generate bash-completion 2>/dev/null
 fi
 
 for i in "$IAM_HOME/tools/bash_completion"/*.bash; do
