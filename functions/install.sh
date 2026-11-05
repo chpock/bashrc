@@ -1,7 +1,7 @@
 #!/bin/bash
 
 __INSTALL_VERSION="
-  moar          1.31.8 auto
+  moor          2.19.6 auto
   rgrc          0.6.34 auto
   flyline:libflyline.so 1.10.0  auto
   flycomp       1.1.2  auto
@@ -728,7 +728,7 @@ __install_eks_node_viewer() {
     " && __install_download && __install_bin "archive" || return $?
 }
 
-__install_moar() {
+__install_moor() {
     local VERSION="$1" EXECUTABLE="$2"
 
     if [ "$VERSION" = "-check" ]; then
@@ -736,11 +736,11 @@ __install_moar() {
             | tr -d 'v'
         return 0
     elif [ "$VERSION" = "-latest" ]; then
-        __install_get_latest_github "walles/moar"
+        __install_get_latest_github "walles/moor"
         return 0
     fi
 
-    local URL="https://github.com/walles/moar/releases/download/v${VERSION}/moar-v${VERSION}-"
+    local URL="https://github.com/walles/moor/releases/download/v${VERSION}/moor-v${VERSION}-"
     __install_make_url -noformat "
         linux-x64   linux-amd64
     " && __install_download && __install_bin "archive" || return $?

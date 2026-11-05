@@ -2705,7 +2705,7 @@ clip() {
 LESS="-F -X -R -i -w -z-4 -P spacebar\:page ahead b\:page back /\:search ahead \?\:search back h\:help q\:quit"
 export LESS
 
-_hasnot moar || export PAGER="moar -quit-if-one-screen"
+_hasnot moor || export PAGER="moor -quit-if-one-screen -no-clear-on-exit -no-clear-on-exit-margin 5 -no-linenumbers -wrap"
 #PAGER=less
 #export PAGER
 

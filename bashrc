@@ -515,8 +515,8 @@ EOF
 
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc.$$"
-LOCAL_TOOLS_FILE_HASH=BFEE22D6
-BASHRC_FILE_HASH=1CF9A07D
+LOCAL_TOOLS_FILE_HASH=8A4622BF
+BASHRC_FILE_HASH=1CB2B839
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -2468,7 +2468,7 @@ done
 }
 LESS="-F -X -R -i -w -z-4 -P spacebar\:page ahead b\:page back /\:search ahead \?\:search back h\:help q\:quit"
 export LESS
-_hasnot moar || export PAGER="moar -quit-if-one-screen"
+_hasnot moor || export PAGER="moor -quit-if-one-screen -no-clear-on-exit -no-clear-on-exit-margin 5 -no-linenumbers -wrap"
 shopt -s histappend
 shopt -s cmdhist
 unset HISTFILESIZE
