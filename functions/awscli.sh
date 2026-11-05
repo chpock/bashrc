@@ -250,6 +250,18 @@ aws() {
             echo "No custom browser defined for AWS SSO login."
         fi
         ;;
+    ec2-send-ssh-public-key)
+        shift
+        if [ $# != 2 ]; then
+            _err "wrong # args. Expected args are: <instance id> <username>" >&2
+            return 1
+        fi
+        (set -x; aws ec2-instance-connect send-ssh-public-key \
+            --instance-id "$1" \
+            --instance-os-user "$2" \
+            --ssh-public-key "$SSH_PUB_KEY" \
+                --no-cli-pager)
+        ;;
     *)
         echo "Unknown command: '$1'"
         return 1
@@ -275,7 +287,7 @@ __,aws() {
     if [ "$COMP_CWORD" -eq 1 ]; then
         # Disable: Prefer mapfile or read -a to split command output (or quote to avoid splitting). [SC2207]
         # shellcheck disable=SC2207
-        COMPREPLY=($(compgen -W "on off local remote role region eks-update-kubeconfig ecr-auth-docker ecr-auth-helm unset-environment-variables profile update-profile eks-tunnel set-browser eks-describe-addon-versions" -- "$CUR"))
+        COMPREPLY=($(compgen -W "on off local remote role region eks-update-kubeconfig ecr-auth-docker ecr-auth-helm unset-environment-variables profile update-profile eks-tunnel set-browser eks-describe-addon-versions ec2-send-ssh-public-key" -- "$CUR"))
         return
     fi
 
@@ -345,6 +357,34 @@ __,aws() {
             )" -- "$CUR"))
             return
         fi
+        ;;
+    ec2-send-ssh-public-key)
+        if [ "$COMP_CWORD" -eq 2 ]; then
+            local AWS_INSTANCE_IDS row id
+            local -a rows=()
+            # shellcheck disable=SC2016
+            AWS_INSTANCE_IDS=$(
+                aws ec2 describe-instances \
+                    --query 'Reservations[].Instances[].[InstanceId,Tags[?Key==`Name`]|[0].Value]' \
+                    --output text
+            ) || return 1
+            while IFS= read -r row; do
+                id=${row%%$'\t'*}
+                if [[ "$id" == "$CUR"* ]]; then
+                    COMPREPLY+=("$id")
+                    rows+=("$row")
+                fi
+            done <<< "$AWS_INSTANCE_IDS"
+            if [ "${#COMPREPLY[@]}" -gt 1 ]; then
+                COMPREPLY=("${rows[@]}")
+            fi
+        elif [ "$COMP_CWORD" -eq 3 ]; then
+            # Disable: Prefer mapfile or read -a to split command output (or quote to avoid splitting). [SC2207]
+            # shellcheck disable=SC2207
+            COMPREPLY=($(compgen -W "ec2-user ubuntu" -- "$CUR")) || :
+        fi
+        # Don't use the default completion here. Return in any case.
+        return 0
         ;;
     esac
 

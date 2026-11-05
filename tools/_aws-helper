@@ -1,0 +1,91 @@
+#!/bin/sh
+
+_SELF_BIN="$0"
+
+ec_instance_connect_open_tunnel() {
+
+    if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
+        {
+            if [ -z "$1" ]; then
+                echo "Error: no instance name specified."
+            else
+                echo "Error: no private key file specified."
+            fi
+            echo
+            echo "Usage: $_SELF_BIN ec-instance-connect-open-tunnel <os user> <instance name> <ssh public key file> [<args...>]"
+        } >&2
+        exit 1
+    fi
+    INSTANCE_OS_USER="$1"
+    INSTANCE_NAME="$2"
+    PRIVATE_KEY_FILE="$3"
+    shift 3
+
+    INSTANCE_ID=$(
+        aws ec2 describe-instances \
+            --query 'Reservations[].Instances[].InstanceId' \
+            --filters "Name=tag:Name,Values=$INSTANCE_NAME" \
+            --output text
+    ) || exit 1
+
+    if [ -z "$INSTANCE_ID" ]; then
+        {
+            echo "Error: failed to find instance with name '$INSTANCE_NAME'"
+            echo
+
+            AWS_IDENTITY=$(aws sts get-caller-identity --output text) || exit 1
+            AWS_ACCOUNT="$(echo "$AWS_IDENTITY" | awk '{print $1}')"
+            AWS_IDENTITY="$(echo "$AWS_IDENTITY" | awk '{print $2}')"
+            echo "Current AWS identity:"
+            echo "  Account: $AWS_ACCOUNT"
+            REGION="${AWS_REGION:-$AWS_DEFAULT_REGION}"
+            if [ -z "$REGION" ]; then
+                REGION="$(command aws configure get region 2>/dev/null)" || unset REGION
+            fi
+            [ -n "$REGION" ] || REGION="<unknown>"
+            echo "  Region: $REGION"
+            echo "  Identity: $AWS_IDENTITY"
+            echo
+            echo "Known instances:"
+            # shellcheck disable=SC2016
+            aws ec2 describe-instances \
+                --query 'Reservations[].Instances[].[Tags[?Key==`Name`]|[0].Value,InstanceId]' \
+                --output text | \
+                awk -F '\t' '{printf "  %s (%s)\n", $1, $2}'
+        } >&2
+        exit 1
+    fi
+
+    case "$INSTANCE_ID" in
+        *[[:space:]]*)
+            printf 'Error: multiple instances match name "%s":\n  %s\n' \
+                "$INSTANCE_NAME" "$INSTANCE_ID" >&2
+            exit 1
+            ;;
+    esac
+
+    aws ec2-instance-connect send-ssh-public-key \
+        --instance-id "$INSTANCE_ID" \
+        --instance-os-user "$INSTANCE_OS_USER" \
+        --ssh-public-key "file://$PRIVATE_KEY_FILE" \
+        --no-cli-pager >/dev/null
+    exec aws ec2-instance-connect open-tunnel \
+        --instance-id "$INSTANCE_ID" \
+        "$@"
+}
+
+if [ "$1" = ec-instance-connect-open-tunnel ]; then
+    shift
+    ec_instance_connect_open_tunnel "$@"
+fi
+
+{
+    if [ -z "$1" ]; then
+        echo "Error: no command specified"
+    else
+        echo "Error: unknown command '$1'"
+    fi
+    echo
+    echo "Usage: $_SELF_BIN ec-instance-connect-open-tunnel <os user> <instance name> <public key file> [<args...>]"
+} >&2
+exit 1

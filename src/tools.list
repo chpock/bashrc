@@ -161,6 +161,12 @@ $IAM_HOME/tools/bin/trace-perl
 has: perl
 @getSize REPO_ROOT/tools/trace-perl
 
+tool: aws-helper tool
+https://raw.githubusercontent.com/chpock/bashrc/master/tools/_aws-helper
+$IAM_HOME/tools/bin/_aws-helper
+has: aws
+@getSize REPO_ROOT/tools/_aws-helper
+
 # Universal package manager
 
 tool: upkg tool

@@ -16,7 +16,7 @@ has: docker
 tool: AWS CLI functions
 https://raw.githubusercontent.com/chpock/bashrc/master/functions/awscli.sh
 $IAM_HOME/functions/awscli.sh
-15540
+17128
 tool: kubetcl function
 https://raw.githubusercontent.com/chpock/bashrc/master/functions/kubectl.sh
 $IAM_HOME/functions/kubectl.sh
@@ -124,6 +124,11 @@ https://raw.githubusercontent.com/chpock/bashrc/master/tools/trace-perl
 $IAM_HOME/tools/bin/trace-perl
 has: perl
 3791
+tool: aws-helper tool
+https://raw.githubusercontent.com/chpock/bashrc/master/tools/_aws-helper
+$IAM_HOME/tools/bin/_aws-helper
+has: aws
+2868
 tool: upkg tool
 https://raw.githubusercontent.com/chpock/upkg/main/upkg
 $IAM_HOME/tools/bin/upkg
