@@ -3037,6 +3037,7 @@ function promptcmd () {
 
     # Exit status of the last command run.
     local exitcode="$1" i
+    unset __PROMPTCMD_RELOAD
 
     # Fix cursor position when it is not on new line.
     # Don't run this code for a shell inside FAR2L. Due to unknown reason,
@@ -3084,6 +3085,7 @@ function promptcmd () {
        [ -z "$SIG" ] || SIG=" ~K~[~y~${SIG}~K~]"
        cprintf "~r~Exit code~K~: ~R~%i$SIG" "$exitcode"
     fi
+    unset PS1_COMMAND
 
     # Save a snapshot of the tmux pane for further restore
     if [ -n "$_TMUX_WINDOW_DUMP_FILE" ]; then
@@ -3113,6 +3115,11 @@ function promptcmd () {
     fi
     # Update session history file
     builtin history -a
+
+    if [ -n "$_BASHRC_STAMP_FILE" ] && [ ! -e "$_BASHRC_STAMP_FILE" ]; then
+        __PROMPTCMD_RELOAD=1
+        return 0
+    fi
 
     local SCRIPT
     for SCRIPT in "$IAM_HOME"/functions/*; do
@@ -3294,8 +3301,6 @@ function promptcmd () {
         && cprintf -a PS1 '~r~# ~d~' \
         || cprintf -a PS1 '~136~$ ~d~'
 
-    unset PS1_COMMAND
-
     if _is tmux && [ -n "$__TMUX_FUNCTIONS_AVAILABLE" ]; then
         ,tmux autosave
     fi
@@ -3345,7 +3350,7 @@ __cleanup_trap() {
 PROMPT_COMMAND='
 { __debug_trap off $? && __EC=0 || __EC=$?; promptcmd "$__EC"; unset __EC; } 2>/dev/null
 
-if [ -n "$_BASHRC_STAMP_FILE" ] && [ ! -e "$_BASHRC_STAMP_FILE" ]; then
+if [ -n "$__PROMPTCMD_RELOAD" ]; then
     _info "The current bashrc is out of date; reloading this shell session."
     reload current
 fi

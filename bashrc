@@ -516,7 +516,7 @@ EOF
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc.$$"
 LOCAL_TOOLS_FILE_HASH=997E5544
-BASHRC_FILE_HASH=267A6E47
+BASHRC_FILE_HASH=B40E8E27
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -1898,10 +1898,10 @@ while IFS=$' \t\r\n' read -r a b c d _ f; do
 [ "$f" = "/dev/shm" ] && continue
 [ "$f" = "/dev" ]     && continue
 [ "$f" = "/run" ]     && continue
-EOF
-cat <<'EOF' >> "$IAM_HOME/bashrc.$$"
 [ "$f" = "/boot" ]    && continue
 [ "${f:0:5}" = "/sys/" ] && continue
+EOF
+cat <<'EOF' >> "$IAM_HOME/bashrc.$$"
 [ "${f:0:5}" = "/run/" ] && continue
 [ "${f:0:6}" = "/boot/" ] && continue
 [ "${f:0:6}" = "/snap/" ] && continue
@@ -2665,6 +2665,7 @@ fi
 }
 function promptcmd () {
 local exitcode="$1" i
+unset __PROMPTCMD_RELOAD
 if [ -z "$__PROMPTCMD_NO_CURPOS" ] && [ -z "$FARPID" ]; then
 local CURPOS SAVE_STTY
 SAVE_STTY="$(stty -g)"
@@ -2693,6 +2694,7 @@ fi
 [ -z "$SIG" ] || SIG=" ~K~[~y~${SIG}~K~]"
 cprintf "~r~Exit code~K~: ~R~%i$SIG" "$exitcode"
 fi
+unset PS1_COMMAND
 if [ -n "$_TMUX_WINDOW_DUMP_FILE" ]; then
 command tmux capture-pane -t "$TMUX_PANE" -e -p -S -1000 > "$_TMUX_WINDOW_DUMP_FILE" 2>/dev/null &
 disown $!
@@ -2711,6 +2713,10 @@ if [ -n "$HISTFILE_GLOBAL" ]; then
 (builtin history -a "$HISTFILE_GLOBAL")
 fi
 builtin history -a
+if [ -n "$_BASHRC_STAMP_FILE" ] && [ ! -e "$_BASHRC_STAMP_FILE" ]; then
+__PROMPTCMD_RELOAD=1
+return 0
+fi
 local SCRIPT
 for SCRIPT in "$IAM_HOME"/functions/*; do
 [ -e "$SCRIPT" ] || continue
@@ -2817,7 +2823,6 @@ cprintf -a PS1 "~K~:${PWD_COLOR}%s~K~]" "$PWD_MSG"
 [ "$UID" -eq 0 ] \
 && cprintf -a PS1 '~r~# ~d~' \
 || cprintf -a PS1 '~136~$ ~d~'
-unset PS1_COMMAND
 if _is tmux && [ -n "$__TMUX_FUNCTIONS_AVAILABLE" ]; then
 ,tmux autosave
 fi
@@ -2843,7 +2848,7 @@ exit $RC
 }
 PROMPT_COMMAND='
 { __debug_trap off $? && __EC=0 || __EC=$?; promptcmd "$__EC"; unset __EC; } 2>/dev/null
-if [ -n "$_BASHRC_STAMP_FILE" ] && [ ! -e "$_BASHRC_STAMP_FILE" ]; then
+if [ -n "$__PROMPTCMD_RELOAD" ]; then
 _info "The current bashrc is out of date; reloading this shell session."
 reload current
 fi
