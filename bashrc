@@ -467,6 +467,7 @@ au InsertLeave * match WhitespaceEOL /\s\+$/
 au BufWinLeave * call clearmatches()
 aug END
 let s:gen_commit_msg_height = 5
+let s:gen_commit_msg_thinking_level = 'medium'
 func! <SID>GenCommitMsgCallback(orig_bufnr, term_bufnr, tmpfile, job, status)
 if a:status == 0
 if filereadable(a:tmpfile) && getfsize(a:tmpfile) > 0
@@ -484,7 +485,10 @@ endif
 endfunc
 func! <SID>GenCommitMsg()
 let l:tmpfile = tempname()
-let l:cmd = 'gen-commit-msg --subject-max ' . shellescape(s:gen_commit_msg_height) . ' --output ' . shellescape(l:tmpfile)
+let l:cmd = 'gen-commit-msg'
+\ . ' --subject-max ' . shellescape(s:gen_commit_msg_height)
+\ . ' --thinking-level ' . shellescape(s:gen_commit_msg_thinking_level)
+\ . ' --output ' . shellescape(l:tmpfile)
 let l:orig_bufnr = bufnr('%')
 execute 'topleft ' . s:gen_commit_msg_height . 'split | enew'
 let l:Callback = function('<SID>GenCommitMsgCallback', [l:orig_bufnr, bufnr('%'), l:tmpfile])
