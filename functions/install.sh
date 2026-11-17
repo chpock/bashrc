@@ -3,7 +3,7 @@
 __INSTALL_VERSION="
   moor          2.19.6 auto
   rgrc          0.6.34 auto
-  flyline:libflyline.so 1.10.0  auto
+  flyline:libflyline.so 1.11.0  auto
   flycomp       1.1.2  auto
   shellcheck    0.10.0
   awscli:aws    2.38.1

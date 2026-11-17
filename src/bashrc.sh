@@ -3587,7 +3587,13 @@ if _isnot in-container; then
         if [ -n "$FLYLINE_LIB" ]; then
             enable -f "$FLYLINE_LIB" flyline
 
-            flyline set-cursor --backend flyline --style "#52ad70" --effect fade --effect-easing in-out-sine --interpolate-easing out-elastic --interpolate none
+            # We will use native terminal cursor. It is beautiful enough.
+            flyline set-cursor --backend terminal
+            # We previously used this cursor, but it differs little from the
+            # terminal's native cursor. To keep things simple and avoid extra
+            # traffic from animations over slow SSH connections, we will no
+            # longer use it.
+            #flyline set-cursor --backend flyline --style "#52ad70" --effect fade --effect-easing in-out-sine --interpolate-easing out-elastic --interpolate none
 
             # Remove `#idx=42462 7sec` from inline suggestions
             flyline editor --show-inline-history-metadata false

@@ -519,8 +519,8 @@ EOF
 
 # avoid issue with some overflow when the file is more than 65536 bytes
 cat <<'EOF' > "$IAM_HOME/bashrc.$$"
-LOCAL_TOOLS_FILE_HASH=997E5544
-BASHRC_FILE_HASH=B40E8E27
+LOCAL_TOOLS_FILE_HASH=2C115554
+BASHRC_FILE_HASH=1B49068F
 declare -A -r __CPRINTF_COLORS=(
 [fw]=$'\e[37m' [fW]=$'\e[97m'
 [fk]=$'\e[30m' [fK]=$'\e[90m'
@@ -1904,11 +1904,11 @@ while IFS=$' \t\r\n' read -r a b c d _ f; do
 [ "$f" = "/run" ]     && continue
 [ "$f" = "/boot" ]    && continue
 [ "${f:0:5}" = "/sys/" ] && continue
-EOF
-cat <<'EOF' >> "$IAM_HOME/bashrc.$$"
 [ "${f:0:5}" = "/run/" ] && continue
 [ "${f:0:6}" = "/boot/" ] && continue
 [ "${f:0:6}" = "/snap/" ] && continue
+EOF
+cat <<'EOF' >> "$IAM_HOME/bashrc.$$"
 [ "$f" = "/usr/lib/modules" ]         && continue
 [ "${f:0:17}" = "/usr/lib/modules/" ] && continue
 if _is wsl; then
@@ -3044,7 +3044,7 @@ if _has_function _install_get_tool_exe; then
 _install_get_tool_exe -v FLYLINE_LIB flyline
 if [ -n "$FLYLINE_LIB" ]; then
 enable -f "$FLYLINE_LIB" flyline
-flyline set-cursor --backend flyline --style "#52ad70" --effect fade --effect-easing in-out-sine --interpolate-easing out-elastic --interpolate none
+flyline set-cursor --backend terminal
 flyline editor --show-inline-history-metadata false
 flyline mouse --mode disabled
 flyline --enable-easter-eggs false
